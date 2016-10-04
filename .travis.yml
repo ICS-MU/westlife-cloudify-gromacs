@@ -9,3 +9,8 @@ install:
 
 script:
     - make test
+
+notifications:
+  email:
+    - holer@ics.muni.cz
+    - ljocha@ics.muni.cz
