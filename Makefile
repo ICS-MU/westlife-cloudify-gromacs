@@ -59,6 +59,7 @@ resources/ssh/id_rsa:
 
 #TODO: Puppet vcsrepo
 resources/puppet/site/gromacs/files/private/gromacs-portal.tar.gz: ../gromacs-portal/
+	mkdir -p resources/puppet/site/gromacs/files/private/
 	tar -czvf $@ -C $? .
 
 resources/puppet.tar.gz: resources/puppet/site/gromacs/files/private/gromacs-portal.tar.gz
