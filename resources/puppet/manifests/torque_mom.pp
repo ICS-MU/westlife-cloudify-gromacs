@@ -1,3 +1,4 @@
+include ::cuda
 include ::westlife::volume
 include ::westlife::nofirewall
 

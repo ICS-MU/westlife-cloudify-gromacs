@@ -1,5 +1,15 @@
 # Cloudify local storage
+.cloudify/
 local-storage/
+
+# Sensitive data
+resources/ssh/
+resources/puppet.tar.gz
+resources/puppet/site/gromacs/files/private/
+
+# Generated blueprints
+cfy-gromacs-blueprint.yaml
+cfy-gromacs-inputs.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

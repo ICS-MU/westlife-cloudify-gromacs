@@ -38,7 +38,7 @@ validate: cfy-$(BLUEPRINT) cfm-$(BLUEPRINT)
 test: validate inputs cfy-init clean
 
 clean:
-	-rm -rf cfy-$(INPUTS) .cfy-$(INPUTS) cfm-$(INPUTS) .cfm-$(INPUTS) cfy-$(BLUEPRINT) .cfy-$(BLUEPRINT) cfm-$(BLUEPRINT) .cfm-$(BLUEPRINT) resources/puppet.tar.gz resources/ssh/ local-storage/
+	-rm -rf cfy-$(INPUTS) .cfy-$(INPUTS) cfm-$(INPUTS) .cfm-$(INPUTS) cfy-$(BLUEPRINT) .cfy-$(BLUEPRINT) cfm-$(BLUEPRINT) .cfm-$(BLUEPRINT) resources/puppet.tar.gz resources/ssh/ local-storage/ resources/puppet/site/gromacs/files/private/gromacs-portal.tar.gz
 
 cfy-deploy: cfy-init cfy-exec-install
 
@@ -57,8 +57,12 @@ resources/ssh/id_rsa:
 	mkdir -p resources/ssh/
 	ssh-keygen -N '' -f resources/ssh/id_rsa
 
-resources/puppet.tar.gz: resources/puppet/
+#TODO: Puppet vcsrepo
+resources/puppet/site/gromacs/files/private/gromacs-portal.tar.gz: ../gromacs-portal/
 	tar -czvf $@ -C $? .
+
+resources/puppet.tar.gz: resources/puppet/site/gromacs/files/private/gromacs-portal.tar.gz
+	tar -czvf $@ -C resources/puppet/ .
 
 
 ### Standalone deployment ########################

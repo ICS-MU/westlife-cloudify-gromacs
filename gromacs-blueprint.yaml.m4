@@ -129,6 +129,8 @@ node_templates:
         manifests:
           start: manifests/gromacs.pp
         hiera:
+          cuda::release: '7.0'
+          gromacs::admin_email: 'ljocha@ics.muni.cz'
           westlife::volume::device: /dev/vdc
           westlife::volume::fstype: ext4
           westlife::volume::mountpoint: /data
@@ -196,6 +198,7 @@ node_templates:
         manifests:
           start: manifests/torque_mom.pp
         hiera:
+          cuda::release: '7.0'
           westlife::volume::device: /dev/vdc
           westlife::volume::fstype: ext4
           westlife::volume::mountpoint: /scratch
