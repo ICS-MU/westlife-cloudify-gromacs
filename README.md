@@ -1,5 +1,7 @@
 # Cloudify Gromacs OCCI blueprints
 
+[![Build Status](https://travis-ci.org/vholer/cloudify-gromacs.svg?branch=master)](https://travis-ci.org/vholer/cloudify-gromacs)
+
 ## Standalone Cloudify
 
 #### Setup OCCI CLI
