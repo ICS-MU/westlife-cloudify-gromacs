@@ -1,15 +1,17 @@
 class gromacs (
-  $packages    = $gromacs::params::packages,
-  $code_dir    = $gromacs::params::code_dir,
-  $data_dir    = $gromacs::params::data_dir,
-  $server_url  = $gromacs::params::server_url,
-  $server_cgi  = $gromacs::params::server_cgi,
-  $admin_email = $gromacs::params::admin_email
+  $version         = $::gromacs::params::version,
+  $prebuilt_suffix = $::gromacs::params::prebuilt_suffix
 ) inherits gromacs::params {
 
-  contain ::gromacs::install
-  contain ::gromacs::config
+  #TODO
+  file { '/tmp/gromacs.tar.xz':
+    ensure => file,
+    source => "puppet:///modules/gromacs/gromacs-${version}${prebuilt_suffix}.tar.xz",
+  }
 
-  Class['::gromacs::install']
-    -> Class['::gromacs::config']
+  archive { '/tmp/gromacs.tar.xz':
+    extract      => true,
+    extract_path => '/',
+    creates      => "/opt/gromacs/",
+  }
 }

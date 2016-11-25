@@ -63,6 +63,10 @@ inputs:
   worker_scratch_size:
     type: integer
 
+  # Application parameters
+  cuda_release:
+    type: string
+
 dsl_definitions:
   occi_configuration: &occi_configuration
     endpoint: { get_input: occi_endpoint }
@@ -127,10 +131,10 @@ node_templates:
       puppet_config:
         <<: *puppet_config
         manifests:
-          start: manifests/gromacs.pp
+          start: manifests/gromacs_portal.pp
         hiera:
-          cuda::release: '7.0'
-          gromacs::admin_email: 'ljocha@ics.muni.cz'
+          cuda::release: { get_input: cuda_release } #??
+          gromacs::portal::admin_email: 'ljocha@ics.muni.cz'
           westlife::volume::device: /dev/vdc
           westlife::volume::fstype: ext4
           westlife::volume::mountpoint: /data
@@ -198,7 +202,6 @@ node_templates:
         manifests:
           start: manifests/torque_mom.pp
         hiera:
-          cuda::release: '7.0'
           westlife::volume::device: /dev/vdc
           westlife::volume::fstype: ext4
           westlife::volume::mountpoint: /scratch
@@ -220,6 +223,24 @@ node_templates:
             establish:
               inputs:
                 manifest: manifests/torque_server.pp  # rekonfigurace serveru
+
+  gromacs:
+    type: _NODE_WEBSERVER_ #TODO
+    instances:
+      deploy: 1
+    properties:
+      fabric_env:
+        <<: *fabric_env
+        host_string: { get_attribute: [workerNode, ip] }
+      puppet_config:
+        <<: *puppet_config
+        manifests:
+          start: manifests/gromacs.pp
+        hiera:
+          cuda::release: { get_input: cuda_release }
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: workerNode
 
 outputs:
   web_endpoint:

@@ -37,9 +37,7 @@ worker_scratch_size: 64
 
 ############################################
 # Application
-
-# ...
-# ...
-# ...
+#
+cuda_release: '7.0'
 
 # vim: set syntax=yaml
