@@ -3,6 +3,8 @@ class gromacs (
   $prebuilt_suffix = $::gromacs::params::prebuilt_suffix
 ) inherits gromacs::params {
 
+  contain ::gromacs::user
+
   #TODO
   file { '/tmp/gromacs.tar.xz':
     ensure => file,

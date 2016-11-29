@@ -66,6 +66,12 @@ inputs:
   # Application parameters
   cuda_release:
     type: string
+  gromacs_portal_admin_email:
+    type: string
+  gromacs_user_public_key:
+    type: string
+  gromacs_user_private_key_b64:
+    type: string
 
 dsl_definitions:
   occi_configuration: &occi_configuration
@@ -133,8 +139,9 @@ node_templates:
         manifests:
           start: manifests/gromacs_portal.pp
         hiera:
-          cuda::release: { get_input: cuda_release } #??
-          gromacs::portal::admin_email: 'ljocha@ics.muni.cz'
+          gromacs::portal::admin_email: { get_input: gromacs_portal_admin_email }
+          gromacs::user::public_key: { get_input: gromacs_user_public_key }
+          gromacs::user::private_key_b64: { get_input: gromacs_user_private_key_b64 }
           westlife::volume::device: /dev/vdc
           westlife::volume::fstype: ext4
           westlife::volume::mountpoint: /data
@@ -238,6 +245,8 @@ node_templates:
           start: manifests/gromacs.pp
         hiera:
           cuda::release: { get_input: cuda_release }
+          gromacs::user::public_key: { get_input: gromacs_user_public_key }
+          gromacs::user::private_key_b64: { get_input: gromacs_user_private_key_b64 }
     relationships:
       - type: cloudify.relationships.contained_in
         target: workerNode

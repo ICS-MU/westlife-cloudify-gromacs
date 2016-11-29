@@ -23,11 +23,11 @@ cfm-$(BLUEPRINT): $(M4BLUEPRINT)
 # inputs
 inputs: cfy-$(INPUTS) cfm-$(INPUTS)
 
-cfy-$(INPUTS): $(M4INPUTS) resources/ssh/id_rsa
+cfy-$(INPUTS): $(M4INPUTS) resources/ssh_cfy/id_rsa resources/ssh_gromacs/id_rsa
 	m4 $(M4INPUTS) >".$@"
 	mv ".$@" $@
 
-cfm-$(INPUTS): $(M4INPUTS) resources/ssh/id_rsa
+cfm-$(INPUTS): $(M4INPUTS) resources/ssh_cfy/id_rsa resources/ssh_gromacs/id_rsa
 	m4 -D_CFM_ -D_CFM_BLUEPRINT_=$(CFM_BLUEPRINT) $(M4INPUTS) >".$@"
 	mv ".$@" $@
 
@@ -38,7 +38,7 @@ validate: cfy-$(BLUEPRINT) cfm-$(BLUEPRINT)
 test: validate inputs cfy-init clean
 
 clean:
-	-rm -rf cfy-$(INPUTS) .cfy-$(INPUTS) cfm-$(INPUTS) .cfm-$(INPUTS) cfy-$(BLUEPRINT) .cfy-$(BLUEPRINT) cfm-$(BLUEPRINT) .cfm-$(BLUEPRINT) resources/puppet.tar.gz resources/ssh/ local-storage/ resources/puppet/site/gromacs/files/private/gromacs-portal.tar.gz
+	-rm -rf cfy-$(INPUTS) .cfy-$(INPUTS) cfm-$(INPUTS) .cfm-$(INPUTS) cfy-$(BLUEPRINT) .cfy-$(BLUEPRINT) cfm-$(BLUEPRINT) .cfm-$(BLUEPRINT) resources/puppet.tar.gz resources/ssh_cfy/ resources/ssh_gromacs/ local-storage/ resources/puppet/site/gromacs/files/private/gromacs-portal.tar.gz
 
 cfy-deploy: cfy-init cfy-exec-install
 
@@ -53,9 +53,13 @@ cfm-test: cfm-deploy cfm-exec-uninstall cfm-clean
 
 ### Resources ####################################
 
-resources/ssh/id_rsa:
-	mkdir -p resources/ssh/
-	ssh-keygen -N '' -f resources/ssh/id_rsa
+resources/ssh_cfy/id_rsa:
+	mkdir -p resources/ssh_cfy/
+	ssh-keygen -N '' -f resources/ssh_cfy/id_rsa
+
+resources/ssh_gromacs/id_rsa:
+	mkdir -p resources/ssh_gromacs/
+	ssh-keygen -N '' -f resources/ssh_gromacs/id_rsa
 
 #TODO: Puppet vcsrepo
 resources/puppet/site/gromacs/files/private/gromacs-portal.tar.gz: ../gromacs-portal/

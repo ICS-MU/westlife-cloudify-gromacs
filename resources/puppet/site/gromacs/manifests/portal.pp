@@ -7,6 +7,7 @@ class gromacs::portal (
   $admin_email = $gromacs::params::portal_admin_email
 ) inherits gromacs::params {
 
+  require ::gromacs::user
   contain ::gromacs::portal::install
   contain ::gromacs::portal::config
 

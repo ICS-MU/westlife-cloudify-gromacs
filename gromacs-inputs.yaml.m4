@@ -17,11 +17,11 @@ occi_voms: True
 cc_username: 'cfy'
 
 # SSH public key
-cc_public_key: 'include(`resources/ssh/id_rsa.pub')'
+cc_public_key: 'include(`resources/ssh_cfy/id_rsa.pub')'
 
 # SSH private key (filename or inline)
 # TODO: better dettect CFM path
-cc_private_key_filename: 'ifdef(`_CFM_',`/opt/manager/resources/blueprints/_CFM_BLUEPRINT_/resources/ssh/id_rsa',`resources/ssh/id_rsa')'
+cc_private_key_filename: 'ifdef(`_CFM_',`/opt/manager/resources/blueprints/_CFM_BLUEPRINT_/resources/ssh_cfy/id_rsa',`resources/ssh_cfy/id_rsa')'
 
 
 ############################################
@@ -37,7 +37,10 @@ worker_scratch_size: 64
 
 ############################################
 # Application
-#
+
 cuda_release: '7.0'
+gromacs_portal_admin_email: 'ljocha@ics.muni.cz'
+gromacs_user_public_key: 'include(`resources/ssh_gromacs/id_rsa.pub')'
+gromacs_user_private_key_b64: 'esyscmd(base64 -w0 resources/ssh_gromacs/id_rsa)'
 
 # vim: set syntax=yaml

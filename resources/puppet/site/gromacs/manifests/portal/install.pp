@@ -25,17 +25,19 @@ class gromacs::portal::install {
   }
 
   #TODO: vcsrepo
-  file { '/tmp/gromacs-portal.tar.gz':
+  $_portal_arch = '/tmp/gromacs-porta.tar.gz'
+
+  file { $_portal_arch:
     ensure => file,
     source => 'puppet:///modules/gromacs/private/gromacs-portal.tar.gz',
   }
 
-  archive { '/tmp/gromacs-portal.tar.gz':
-    extract         => true,
-    extract_path    => $::gromacs::portal::code_dir,
-    creates         => "${::gromacs::portal::code_dir}/cgi",
-    user            => 'apache',
-    group           => 'apache',
-    require         => Class['::apache'],
+  archive { $_portal_arch:
+    extract      => true,
+    extract_path => $::gromacs::portal::code_dir,
+    creates      => "${::gromacs::portal::code_dir}/cgi",
+    user         => $::apache::user,
+    group        => $::apache::group,
+    require      => Class['::apache'],
   }
 }
