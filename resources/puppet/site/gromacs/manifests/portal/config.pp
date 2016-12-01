@@ -73,6 +73,6 @@ class gromacs::portal::config {
   cron { 'gmx_gridmanager':
     command     => 'cd /var/www/gromacs/server/temp && /var/www/gromacs/cron/gmx_gridmanager.sh',
     user        => $::gromacs::user::user_name,
-    environment => 'MAILTO=vlastimil.holer@gmail.com',
+    environment => "MAILTO=${::gromacs::portal::admin_email}",
   }
 }
