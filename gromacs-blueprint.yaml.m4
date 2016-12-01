@@ -145,6 +145,7 @@ node_templates:
           westlife::volume::device: /dev/vdc
           westlife::volume::fstype: ext4
           westlife::volume::mountpoint: /data
+          westlife::volume::mode: '1777'
     relationships:
       - type: cloudify.relationships.contained_in
         target: olinNode
@@ -212,6 +213,7 @@ node_templates:
           westlife::volume::device: /dev/vdc
           westlife::volume::fstype: ext4
           westlife::volume::mountpoint: /scratch
+          westlife::volume::mode: '1777'
     relationships:
       - type: cloudify.relationships.contained_in
         target: workerNode

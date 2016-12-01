@@ -26,6 +26,7 @@ class gromacs::params {
        case $::operatingsystemmajrelease {
          '7': {
            $prebuilt_suffix = '-el7'
+           $packages = ['openmpi-devel']
            $portal_packages = ['python2-crypto']
          }
 

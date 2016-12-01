@@ -1,9 +1,12 @@
 class gromacs (
   $version         = $::gromacs::params::version,
-  $prebuilt_suffix = $::gromacs::params::prebuilt_suffix
+  $prebuilt_suffix = $::gromacs::params::prebuilt_suffix,
+  $packages        = $::gromacs::params::packages
 ) inherits gromacs::params {
 
   contain ::gromacs::user
+
+  ensure_packages($packages)
 
   #TODO
   file { '/tmp/gromacs.tar.xz':

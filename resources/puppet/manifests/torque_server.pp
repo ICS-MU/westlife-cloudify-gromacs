@@ -29,7 +29,7 @@ if ($::cloudify_ctx_type == 'node-instance') or ($::cloudify_ctx_operation_name 
   ::torque::qmgr::attribute { 'server keep_completed':
     object => 'server',
     key    => 'keep_completed',
-    value  => '300',
+    value  => '86400',
   }
   
   ::torque::qmgr::attribute { 'server mom_job_sync':

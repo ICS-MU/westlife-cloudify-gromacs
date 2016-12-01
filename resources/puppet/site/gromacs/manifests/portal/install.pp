@@ -25,7 +25,7 @@ class gromacs::portal::install {
   }
 
   #TODO: vcsrepo
-  $_portal_arch = '/tmp/gromacs-porta.tar.gz'
+  $_portal_arch = '/tmp/gromacs-portal.tar.gz'
 
   file { $_portal_arch:
     ensure => file,
