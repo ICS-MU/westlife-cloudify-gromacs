@@ -2,14 +2,6 @@ include ::gromacs::portal
 include ::westlife::volume
 include ::westlife::nofirewall
 
-# Note: /scratch must be present on submit host
-# before submitting on nodes via qsub -d /scratch
-file { '/scratch':
-  ensure  => link,
-  target  => '/data',
-  require => Class['::westlife::volume'],
-}
-
 # fix gromacs/apache group
 exec { "usermod -a -G ${::gromacs::user::group_name} ${::apache::user}":
   unless  => "groups ${::apache::user} | grep -q ${::gromacs::user::group_name}",
