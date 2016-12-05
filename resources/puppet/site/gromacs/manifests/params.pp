@@ -23,18 +23,17 @@ class gromacs::params {
 
   case $::operatingsystem {
     'redhat','centos','scientific','oraclelinux': { #TODO
-       case $::operatingsystemmajrelease {
-         '7': {
-           $prebuilt_suffix = '-el7'
-           $packages = ['openmpi-devel']
-           $portal_packages = ['python2-crypto']
-         }
+      case $::operatingsystemmajrelease {
+        '7': {
+          $prebuilt_suffix = '-el7'
+          $packages = ['openmpi-devel', 'bc']
+          $portal_packages = ['python2-crypto']
+        }
 
-         default: {
-           fail("Unsupported OS: ${::operatingsystem} ${::operatingsystemmajrelease}")
-         }
-       }
-
+        default: {
+          fail("Unsupported OS: ${::operatingsystem} ${::operatingsystemmajrelease}")
+        }
+      }
     }
 
     default: {
