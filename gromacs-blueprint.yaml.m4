@@ -6,7 +6,8 @@ description: >
 
 imports:
   - http://getcloudify.org/spec/cloudify/4.0m4/types.yaml
-  - http://getcloudify.org/spec/fabric-plugin/1.3.1/plugin.yaml
+#  - http://getcloudify.org/spec/fabric-plugin/1.3.1/plugin.yaml
+  - https://raw.githubusercontent.com/vholer/cloudify-fabric-plugin/master/plugin.yaml
   - http://getcloudify.org/spec/diamond-plugin/1.3.1/plugin.yaml
   - https://raw.githubusercontent.com/vholer/cloudify-occi-plugin-experimental/master/plugin.yaml
   - types/puppet.yaml
@@ -113,9 +114,7 @@ node_templates:
       agent_config: *agent_configuration
       cloud_config: *cloud_configuration
       occi_config: *occi_configuration
-      fabric_env:
-        <<: *fabric_env
-        host_string: { get_attribute: [olinNode, ip] } # req. by relationship ref.
+      fabric_env: *fabric_env
 
   olinStorage:
     type: cloudify.occi.nodes.Volume
@@ -123,7 +122,7 @@ node_templates:
       size: { get_input: olin_scratch_size }
       occi_config: *occi_configuration
     relationships:
-      - type: cloudify.occi.relationships.volume_attached_to_server
+      - type: cloudify.occi.relationships.volume_contained_in_server
         target: olinNode
 
   gromacsPortal:
@@ -131,9 +130,7 @@ node_templates:
     instances:
       deploy: 1
     properties:
-      fabric_env:
-        <<: *fabric_env
-        host_string: { get_attribute: [olinNode, ip] }
+      fabric_env: *fabric_env
       puppet_config:
         <<: *puppet_config
         manifests:
@@ -157,9 +154,7 @@ node_templates:
     instances:
       deploy: 1
     properties:
-      fabric_env:
-        <<: *fabric_env
-        host_string: { get_attribute: [olinNode, ip] }
+      fabric_env: *fabric_env
       puppet_config:
         <<: *puppet_config
         manifests:
@@ -178,13 +173,11 @@ node_templates:
       agent_config: *agent_configuration
       cloud_config: *cloud_configuration
       occi_config: *occi_configuration
-      fabric_env:
-        <<: *fabric_env
-        host_string: { get_attribute: [workerNode, ip] } # req. by relationship ref.
+      fabric_env: *fabric_env
     capabilities:
       scalable:
         properties:
-          default_instances: 1
+          default_instances: 2
           min_instances: 0
           max_instances: 5
 
@@ -194,7 +187,7 @@ node_templates:
       size: { get_input: worker_scratch_size }
       occi_config: *occi_configuration
     relationships:
-      - type: cloudify.occi.relationships.volume_attached_to_server
+      - type: cloudify.occi.relationships.volume_contained_in_server
         target: workerNode
 
   torqueMom:
@@ -202,9 +195,7 @@ node_templates:
     instances:
       deploy: 1
     properties:
-      fabric_env:
-        <<: *fabric_env
-        host_string: { get_attribute: [workerNode, ip] }
+      fabric_env: *fabric_env
       puppet_config:
         <<: *puppet_config
         manifests:
@@ -238,9 +229,7 @@ node_templates:
     instances:
       deploy: 1
     properties:
-      fabric_env:
-        <<: *fabric_env
-        host_string: { get_attribute: [workerNode, ip] }
+      fabric_env: *fabric_env
       puppet_config:
         <<: *puppet_config
         manifests:
