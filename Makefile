@@ -6,6 +6,7 @@ CFM_BLUEPRINT=gromacs
 CFM_DEPLOYMENT=gromacs
 RETRIES=10
 VIRTUAL_ENV?=~/cfy
+GROMACS_PORTAL?=git@github.com:CERIT-SC/gromacs-portal.git
 
 .PHONY: blueprints inputs validate test clean
 
@@ -63,7 +64,7 @@ resources/ssh_gromacs/id_rsa:
 
 #TODO: Puppet vcsrepo
 resources/gromacs-portal:
-	git clone git@github.com:CERIT-SC/gromacs-portal.git $@
+	git clone $(GROMACS_PORTAL) $@
 
 resources/puppet/site/gromacs/files/private/gromacs-portal.tar.gz: resources/gromacs-portal
 	mkdir -p resources/puppet/site/gromacs/files/private/

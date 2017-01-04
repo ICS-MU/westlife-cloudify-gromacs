@@ -6,9 +6,10 @@ python:
 
 install:
     - make bootstrap
+    - git init /tmp/gromacs-portal
 
 script:
-    - make test
+    - GROMACS_PORTAL=/tmp/gromacs-portal make test
 
 notifications:
   email:
