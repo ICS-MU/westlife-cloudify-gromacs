@@ -4,6 +4,7 @@ local-storage/
 
 # Sensitive data
 resources/ssh*/
+resources/gromacs-portal/
 resources/puppet.tar.gz
 resources/puppet/site/gromacs/files/private/
 

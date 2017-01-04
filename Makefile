@@ -62,7 +62,10 @@ resources/ssh_gromacs/id_rsa:
 	ssh-keygen -N '' -f resources/ssh_gromacs/id_rsa
 
 #TODO: Puppet vcsrepo
-resources/puppet/site/gromacs/files/private/gromacs-portal.tar.gz: ../gromacs-portal/
+resources/gromacs-portal:
+	git clone git@github.com:CERIT-SC/gromacs-portal.git $@
+
+resources/puppet/site/gromacs/files/private/gromacs-portal.tar.gz: resources/gromacs-portal
 	mkdir -p resources/puppet/site/gromacs/files/private/
 	tar -czvf $@ -C $? .
 
