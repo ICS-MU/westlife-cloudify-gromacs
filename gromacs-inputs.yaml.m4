@@ -38,7 +38,7 @@ worker_scratch_size: 64
 ############################################
 # Application
 
-cuda_release: '7.0'
+cuda_release: '' #'7.0'
 gromacs_portal_enable_ssl: True
 gromacs_portal_admin_email: 'root@localhost'
 gromacs_user_public_key: 'include(`resources/ssh_gromacs/id_rsa.pub')'
