@@ -39,6 +39,7 @@ worker_scratch_size: 64
 # Application
 
 cuda_release: '7.0'
+gromacs_portal_enable_ssl: True
 gromacs_portal_admin_email: 'root@localhost'
 gromacs_user_public_key: 'include(`resources/ssh_gromacs/id_rsa.pub')'
 gromacs_user_private_key_b64: 'esyscmd(base64 -w0 resources/ssh_gromacs/id_rsa)'

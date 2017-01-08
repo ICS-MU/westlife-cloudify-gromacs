@@ -20,6 +20,7 @@ class gromacs::params {
   $portal_server_url = "http://${::fqdn}"
   $portal_server_cgi = "http://${::fqdn}/cgi/"
   $portal_admin_email = 'root@localhost'
+  $portal_enable_ssl = true
 
   case $::operatingsystem {
     'redhat','centos','scientific','oraclelinux': { #TODO

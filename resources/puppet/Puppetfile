@@ -10,3 +10,5 @@ mod "puppetlabs/vcsrepo",   "1.4.0"
 mod "puppetlabs/inifile",   "1.5.0"
 mod "puppet/archive",       "1.1.2"
 mod "puppet/yum",           "0.9.15"
+mod 'stahnma/epel',         '1.2.2'
+mod 'puppet/letsencrypt',   '1.0.1'

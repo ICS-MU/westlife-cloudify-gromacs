@@ -4,7 +4,8 @@ class gromacs::portal (
   $data_dir    = $gromacs::params::portal_data_dir,
   $server_url  = $gromacs::params::portal_server_url,
   $server_cgi  = $gromacs::params::portal_server_cgi,
-  $admin_email = $gromacs::params::portal_admin_email
+  $admin_email = $gromacs::params::portal_admin_email,
+  $enable_ssl  = $gromacs::params::portal_enable_ssl
 ) inherits gromacs::params {
 
   require ::gromacs::user

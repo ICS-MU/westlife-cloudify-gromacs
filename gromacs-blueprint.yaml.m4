@@ -67,6 +67,8 @@ inputs:
   # Application parameters
   cuda_release:
     type: string
+  gromacs_portal_enable_ssl:
+    type: boolean
   gromacs_portal_admin_email:
     type: string
   gromacs_user_public_key:
@@ -136,6 +138,7 @@ node_templates:
         manifests:
           start: manifests/gromacs_portal.pp
         hiera:
+          gromacs::portal::enable_ssl: { get_input: gromacs_portal_enable_ssl }
           gromacs::portal::admin_email: { get_input: gromacs_portal_admin_email }
           gromacs::user::public_key: { get_input: gromacs_user_public_key }
           gromacs::user::private_key_b64: { get_input: gromacs_user_private_key_b64 }

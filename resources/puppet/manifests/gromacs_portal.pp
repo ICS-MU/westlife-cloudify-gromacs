@@ -1,3 +1,4 @@
+include ::gromacs
 include ::gromacs::portal
 include ::westlife::volume
 include ::westlife::nofirewall
