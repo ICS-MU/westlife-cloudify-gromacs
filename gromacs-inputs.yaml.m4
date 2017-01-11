@@ -31,7 +31,7 @@ olin_os_tpl: 'uuid_egi_centos_7_fedcloud_warg_149'
 olin_resource_tpl: 'small'
 olin_scratch_size: 256
 worker_os_tpl: 'uuid_egi_centos_7_fedcloud_warg_149'
-worker_resource_tpl: 'medium'
+worker_resource_tpl: 'extra_large'
 worker_scratch_size: 64
 
 
@@ -39,7 +39,7 @@ worker_scratch_size: 64
 # Application
 
 cuda_release: '' #'7.0'
-gromacs_portal_enable_ssl: True
+gromacs_portal_enable_ssl: False #if True, setup valid admin e-mail below
 gromacs_portal_admin_email: 'root@localhost'
 gromacs_user_public_key: 'include(`resources/ssh_gromacs/id_rsa.pub')'
 gromacs_user_private_key_b64: 'esyscmd(base64 -w0 resources/ssh_gromacs/id_rsa)'
