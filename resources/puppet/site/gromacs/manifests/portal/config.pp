@@ -13,6 +13,7 @@ class gromacs::portal::config {
   # GROMACS data directory
   file { $::gromacs::portal::data_dir:
     ensure => directory,
+    mode   => '0777', #TODO
     owner  => $::apache::user,
     group  => $::apache::group,
     before => Exec['config_server.sh'],
@@ -31,12 +32,12 @@ class gromacs::portal::config {
 
   ini_setting { 'gmx_serverconf.ini-STR_SERVER_URL':
     setting => 'STR_SERVER_URL',
-    value   => $::gromacs::portal::server_url,
+    value   => $::gromacs::portal::_server_url,
   }
 
   ini_setting { 'gmx_serverconf.ini-STR_SERVER_CGI':
     setting => 'STR_SERVER_CGI',
-    value   => $::gromacs::portal::server_cgi,
+    value   => $::gromacs::portal::_server_cgi,
   }
 
   ini_setting { 'gmx_serverconf.ini-STR_ADMIN_EMAIL':
@@ -71,7 +72,23 @@ class gromacs::portal::config {
 
   # job manager
   cron { 'gmx_gridmanager':
-    command     => 'cd /var/www/gromacs/server/temp && /var/www/gromacs/cron/gmx_gridmanager.sh',
+    command     => "cd ${::gromacs::portal::data_dir} && /var/www/gromacs/cron/gmx_gridmanager.sh &>>/tmp/gmx_gridmanager.log",
+    minute      => '1-59/2', #odd
+    user        => $::gromacs::user::user_name,
+    environment => "MAILTO=${::gromacs::portal::admin_email}",
+    require     => File[$::gromacs::portal::data_dir],
+  }
+
+  cron { 'gmx_jobcontroller':
+    command     => "cd ${::gromacs::portal::code_dir}/cron/ && ./gmx_jobcontroller.sh &>>/tmp/gmx_jobcontroller.log",
+    minute      => '*/2', #even
+    user        => $::gromacs::user::user_name,
+    environment => "MAILTO=${::gromacs::portal::admin_email}",
+  }
+
+  cron { 'gmx_postprocessor':
+    command     => "cd ${::gromacs::portal::code_dir}/cron/ && ./gmx_postprocessor.sh &>>/tmp/gmx_postprocessor.log",
+    minute      => '*/5',
     user        => $::gromacs::user::user_name,
     environment => "MAILTO=${::gromacs::portal::admin_email}",
   }

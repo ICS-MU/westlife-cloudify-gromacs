@@ -17,10 +17,10 @@ class gromacs::params {
 
   $portal_code_dir = '/var/www/gromacs'
   $portal_data_dir = '/data/gromacs'
-  $portal_server_url = "http://${::fqdn}"
-  $portal_server_cgi = "http://${::fqdn}/cgi/"
-  $portal_admin_email = 'root@localhost'
   $portal_enable_ssl = true
+  $portal_server_url = undef  #depends on $portal_enable_ssl
+  $portal_server_cgi = undef
+  $portal_admin_email = 'root@localhost'
 
   case $::operatingsystem {
     'redhat','centos','scientific','oraclelinux': { #TODO

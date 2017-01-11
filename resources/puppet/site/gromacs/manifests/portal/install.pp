@@ -9,6 +9,13 @@ class gromacs::portal::install {
 
   contain ::apache::mod::php
 
+  $_custom_fragment = "
+  <Directory '${::gromacs::portal::code_dir}/cgi'>
+    Options +ExecCGI
+    AddHandler cgi-script .cgi
+  </Directory>
+"
+
   ::apache::vhost { 'http':
     ensure          => present,
     port            => 80,
@@ -16,13 +23,7 @@ class gromacs::portal::install {
     manage_docroot  => true,
     docroot_owner   => 'apache',
     docroot_group   => 'apache',
-    custom_fragment => "
-
-  <Directory '${::gromacs::portal::code_dir}/cgi'>
-    Options +ExecCGI
-    AddHandler cgi-script .cgi
-  </Directory>
-",
+    custom_fragment => $_custom_fragment,
   }
 
   # SSL via Let's Encrypt
@@ -49,15 +50,16 @@ class gromacs::portal::install {
       ssl_cert        => "/etc/letsencrypt/live/${::fqdn}/cert.pem",
       ssl_chain       => "/etc/letsencrypt/live/${::fqdn}/chain.pem",
       ssl_key         => "/etc/letsencrypt/live/${::fqdn}/privkey.pem",
-      custom_fragment => "
+      custom_fragment => $_custom_fragment,
+    }
 
-  <Directory '${::gromacs::portal::code_dir}/cgi'>
-    Options +ExecCGI
-    AddHandler cgi-script .cgi
-  </Directory>
-",
+    # redirect http->https
+    ::Apache::Vhost['http'] {
+      redirect_status => 'permanent',
+      redirect_dest   => "${::gromacs::portal::_server_url}/"
     }
   }
+
 
   #TODO: vcsrepo
   $_portal_arch = '/tmp/gromacs-portal.tar.gz'
