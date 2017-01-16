@@ -26,7 +26,14 @@ class gromacs::params {
     'redhat','centos','scientific','oraclelinux': { #TODO
       case $::operatingsystemmajrelease {
         '7': {
-          $prebuilt_suffix = '-el7'
+          if ('avx2' in $::cpu_flags) {
+            $prebuilt_suffix = '-avx2.el7'
+          } elsif ('avx' in $::cpu_flags) {
+            $prebuilt_suffix = '-avx.el7'
+          } else {
+            $prebuilt_suffix = '-el7'
+          }
+
           $packages = ['openmpi-devel', 'bc', 'wget', 'mailx']
           $portal_packages = ['python2-crypto']
         }
