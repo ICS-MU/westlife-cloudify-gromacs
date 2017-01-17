@@ -177,12 +177,12 @@ node_templates:
       cloud_config: *cloud_configuration
       occi_config: *occi_configuration
       fabric_env: *fabric_env
-    capabilities:
-      scalable:
-        properties:
-          default_instances: 2
-          min_instances: 0
-          max_instances: 5
+#    capabilities:
+#      scalable:
+#        properties:
+#          default_instances: 2
+#          min_instances: 0
+#          max_instances: 5
 
   workerScratch:
     type: cloudify.occi.nodes.Volume
@@ -244,6 +244,17 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: workerNode
+
+groups:
+  workerNodes:
+    members: [workerNode]
+
+policies:
+  scaleWorkerNodes:
+    type: cloudify.policies.scaling
+    properties:
+      default_instances: 2
+    targets: [workerNodes]
 
 outputs:
   web_endpoint:
