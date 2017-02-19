@@ -19,7 +19,7 @@ class gromacs::portal::config {
     before => Exec['config_server.sh'],
   }
 
-  # settings
+  # server settings
   ini_setting { 'gmx_serverconf.ini-STR_BASEDIR':
     setting => 'STR_BASEDIR',
     value   => $::gromacs::portal::code_dir,
@@ -43,6 +43,13 @@ class gromacs::portal::config {
   ini_setting { 'gmx_serverconf.ini-STR_ADMIN_EMAIL':
     setting => 'STR_ADMIN_EMAIL',
     value   => $::gromacs::portal::admin_email,
+  }
+
+  # gromacs options
+  ini_setting { 'gmx_serverconf.ini-INT_GROMACS_CPU_NR':
+    section => 'gromacs_options',
+    setting => 'INT_GROMACS_CPU_NR',
+    value   => $::gromacs::portal::gromacs_cpu_nr,
   }
 
   # configure gromacs
