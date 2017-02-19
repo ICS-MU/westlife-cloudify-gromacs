@@ -6,11 +6,11 @@ class westlife::volume (
   $group = 'root',
   $mode  = '0777'
 ) {
-  if $facts['disks'][delete($device, '/dev/')] {
-    exec { "/usr/bin/mkdir ${mountpoint}":
-      creates => $mountpoint,
-    }
+  exec { "/usr/bin/mkdir ${mountpoint}":
+    creates => $mountpoint,
+  }
 
+  if $facts['disks'][delete($device, '/dev/')] {
     mount { $mountpoint:
       ensure  => mounted,
       device  => $device,
@@ -18,15 +18,15 @@ class westlife::volume (
       atboot  => true,
       options => 'defaults',
       require => Exec["/usr/bin/mkdir ${mountpoint}"],
+      before  => File[$mountpoint],
     }
+  }
 
-    # fix dir. permissions after mount
-    file { $mountpoint:
-      ensure  => directory,
-      owner   => $owner,
-      group   => $group,
-      mode    => $mode,
-      require => Mount[$mountpoint],
-    }
+  # fix dir. permissions after mount
+  file { $mountpoint:
+    ensure => directory,
+    owner  => $owner,
+    group  => $group,
+    mode   => $mode,
   }
 }
