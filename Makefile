@@ -4,7 +4,7 @@ BLUEPRINT=gromacs-blueprint.yaml
 M4BLUEPRINT=$(BLUEPRINT).m4
 CFM_BLUEPRINT=gromacs
 CFM_DEPLOYMENT=gromacs
-RETRIES=10
+RETRIES=50
 VIRTUAL_ENV?=~/cfy
 GROMACS_PORTAL?=git@github.com:CERIT-SC/gromacs-portal.git
 

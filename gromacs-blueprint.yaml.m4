@@ -55,11 +55,15 @@ inputs:
     type: string
   olin_resource_tpl:
     type: string
+  olin_availability_zone:
+    type: string
   olin_scratch_size:
     type: integer
   worker_os_tpl:
     type: string
   worker_resource_tpl:
+    type: string
+  worker_availability_zone:
     type: string
   worker_scratch_size:
     type: integer
@@ -113,6 +117,7 @@ node_templates:
       resource_config:
         os_tpl: { get_input: olin_os_tpl }
         resource_tpl: { get_input: olin_resource_tpl }
+        availability_zone: { get_input: olin_availability_zone }
       agent_config: *agent_configuration
       cloud_config: *cloud_configuration
       occi_config: *occi_configuration
@@ -122,6 +127,7 @@ node_templates:
     type: cloudify.occi.nodes.Volume
     properties:
       size: { get_input: olin_scratch_size }
+      availability_zone: { get_input: olin_availability_zone }
       occi_config: *occi_configuration
     relationships:
       - type: cloudify.occi.relationships.volume_contained_in_server
@@ -140,6 +146,7 @@ node_templates:
         hiera:
           gromacs::portal::enable_ssl: { get_input: gromacs_portal_enable_ssl }
           gromacs::portal::admin_email: { get_input: gromacs_portal_admin_email }
+          gromacs::portal::gromacs_cpu_nr: 1
           gromacs::user::public_key: { get_input: gromacs_user_public_key }
           gromacs::user::private_key_b64: { get_input: gromacs_user_private_key_b64 }
           westlife::volume::device: /dev/vdc
@@ -173,6 +180,7 @@ node_templates:
       resource_config:
         os_tpl: { get_input: worker_os_tpl }
         resource_tpl: { get_input: worker_resource_tpl }
+        availability_zone: { get_input: worker_availability_zone }
       agent_config: *agent_configuration
       cloud_config: *cloud_configuration
       occi_config: *occi_configuration
@@ -188,6 +196,7 @@ node_templates:
     type: cloudify.occi.nodes.Volume
     properties:
       size: { get_input: worker_scratch_size }
+      availability_zone: { get_input: olin_availability_zone }
       occi_config: *occi_configuration
     relationships:
       - type: cloudify.occi.relationships.volume_contained_in_server
@@ -253,7 +262,7 @@ policies:
   scaleWorkerNodes:
     type: cloudify.policies.scaling
     properties:
-      default_instances: 2
+      default_instances: 1
     targets: [workerNodes]
 
 outputs:

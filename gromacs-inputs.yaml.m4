@@ -27,18 +27,25 @@ cc_private_key_filename: 'ifdef(`_CFM_',`/opt/manager/resources/blueprints/_CFM_
 ############################################
 # Instances
 
-olin_os_tpl: 'uuid_egi_centos_7_fedcloud_warg_149'
-olin_resource_tpl: 'small'
-olin_scratch_size: 256
-worker_os_tpl: 'uuid_egi_centos_7_fedcloud_warg_149'
-worker_resource_tpl: 'extra_large'
-worker_scratch_size: 64
+#olin_os_tpl: 'uuid_egi_centos_7_fedcloud_warg_149'
+olin_os_tpl: 'uuid_enmr_centos_7_cerit_sc_187'
+#olin_resource_tpl: 'small'
+olin_resource_tpl: 'extra_large'
+olin_availability_zone: 'uuid_fedcloud_cerit_sc_103'
+olin_scratch_size: 30
+#worker_os_tpl: 'uuid_egi_centos_7_fedcloud_warg_149'
+#worker_os_tpl: 'uuid_enmr_centos_7_cerit_sc_187'
+worker_os_tpl: 'uuid_enmr_gpgpu_centos_7_cerit_sc_185'
+#worker_resource_tpl: 'extra_large'
+worker_resource_tpl: 'large'
+worker_availability_zone: 'uuid_fedcloud_cerit_sc_103'
+worker_scratch_size: 15
 
 
 ############################################
 # Application
 
-cuda_release: '' #'7.0'
+cuda_release: '7.0'
 gromacs_portal_enable_ssl: False #if True, setup valid admin e-mail below
 gromacs_portal_admin_email: 'root@localhost'
 gromacs_user_public_key: 'include(`resources/ssh_gromacs/id_rsa.pub')'
