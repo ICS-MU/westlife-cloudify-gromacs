@@ -1,20 +1,21 @@
 node_types:
-  example.nodes.DBMS:
-    #derived_from: cloudify.nodes.DBMS
+  example.nodes.TorqueServer:
+    #derived_from: cloudify.nodes.WebServer
     derived_from: example.nodes.puppet.SoftwareComponent
 
-  example.nodes.MonitoredDBMS:
-    #derived_from: example.nodes.DBMS
+  example.nodes.MonitoredTorqueServer:
+    #derived_from: example.nodes.WebServer
     derived_from: example.nodes.puppet.SoftwareComponent
     interfaces:
       cloudify.interfaces.monitoring:
         start:
           implementation: diamond.diamond_agent.tasks.add_collectors
           inputs:
-            collectors_config: &dbms_collectors
-              default: {}
-#                LoadAverageCollector: {}
+            collectors_config: &torqueserver_collectors
+              default:
+                TorqueCollector:
+                  path: collectors/torque.py
         stop:
           implementation: diamond.diamond_agent.tasks.del_collectors
           inputs:
-            collectors_config: *dbms_collectors
+            collectors_config: *torqueserver_collectors

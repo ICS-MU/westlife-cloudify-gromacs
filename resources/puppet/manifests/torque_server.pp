@@ -20,6 +20,12 @@ if ($::cloudify_ctx_type == 'node-instance') or ($::cloudify_ctx_operation_name 
     }
   }
 
+  ::torque::qmgr::attribute { 'server scheduler_iteration':
+    object => 'server',
+    key    => 'scheduler_iteration',
+    value  => '30',
+  }
+
   ::torque::qmgr::attribute { 'server scheduling':
     object => 'server',
     key    => 'scheduling',
@@ -36,6 +42,12 @@ if ($::cloudify_ctx_type == 'node-instance') or ($::cloudify_ctx_operation_name 
     object => 'server',
     key    => 'mom_job_sync',
     value  => 'true',
+  }
+
+  ::torque::qmgr::attribute { 'server node_check_rate':
+    object => 'server',
+    key    => 'node_check_rate',
+    value  => '30',
   }
   
   # queue batch

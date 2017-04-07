@@ -2,6 +2,7 @@ class torque::server (
   $packages      = $torque::params::server_packages,
   $serverdb_file = $torque::params::serverdb_file,
   $nodes         = $torque::params::nodes,
+  $purge_nodes   = $torque::params::server_purge_nodes,
   $service       = $torque::params::server_service
 ) inherits torque::params {
 

@@ -14,7 +14,21 @@ node_types:
           inputs:
             diamond_config:
               default:
-                interval: 10
+                interval: 14
         start: diamond.diamond_agent.tasks.start
         stop: diamond.diamond_agent.tasks.stop
         uninstall: diamond.diamond_agent.tasks.uninstall
+      cloudify.interfaces.monitoring:
+        start:
+          implementation: diamond.diamond_agent.tasks.add_collectors
+          inputs:
+            collectors_config: &server_collectors
+              default:
+                CPUCollector: {}
+                LoadAverageCollector: {}
+                MemoryCollector: {}
+                NetworkCollector: {}
+        stop:
+          implementation: diamond.diamond_agent.tasks.del_collectors
+          inputs:
+            collectors_config: *server_collectors

@@ -4,6 +4,10 @@ class torque::server::config {
     creates => $::torque::server::serverdb_file,
   }
 
+  resources { 'torque_node':
+    purge  => $::torque::server::purge_nodes,
+  }  
+
   # collect exported/virtual resources
   Torque_node       <<| server_name == $::torque::server::server_name |>>
   Torque_node        <| server_name == $::torque::server::server_name |>

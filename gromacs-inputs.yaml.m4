@@ -33,6 +33,7 @@ olin_os_tpl: 'uuid_enmr_centos_7_cerit_sc_187'
 olin_resource_tpl: 'extra_large'
 olin_availability_zone: 'uuid_fedcloud_cerit_sc_103'
 olin_scratch_size: 30
+
 #worker_os_tpl: 'uuid_egi_centos_7_fedcloud_warg_149'
 #worker_os_tpl: 'uuid_enmr_centos_7_cerit_sc_187'
 worker_os_tpl: 'uuid_enmr_gpgpu_centos_7_cerit_sc_185'

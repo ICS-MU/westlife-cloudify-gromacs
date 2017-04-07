@@ -32,7 +32,7 @@ function puppet_recipes() {
         MANIFESTS_FILE=$(ctx download-resource ${PC_DOWNLOAD})
         echo -n 'Puppet: extracting recipes '
         tar -xf ${MANIFESTS_FILE} -C ${1}
-	echo '... done'
+        echo '... done'
 
         # install modules
         cd ${1}
@@ -40,7 +40,7 @@ function puppet_recipes() {
         echo -n 'Puppet: installing modules '
         test -f ${PUPPETFILE} && \
             sudo /opt/puppetlabs/puppet/bin/r10k puppetfile install ${PUPPETFILE}
-	echo '... done'
+        echo '... done'
     fi
 }
 
@@ -125,5 +125,6 @@ echo "Puppet: running manifest ${MANIFEST}"
 sudo -E /opt/puppetlabs/bin/puppet apply \
     --hiera_config="${HIERA_DIR}/hiera.yaml" \
     --modulepath="${MANIFESTS}/modules:${MANIFESTS}/site:${FACTS_DIR}" \
-    --verbose ${MANIFEST}
+    --verbose --logdest=syslog --logdest=console \
+    ${MANIFEST}
 echo 'Puppet: done'

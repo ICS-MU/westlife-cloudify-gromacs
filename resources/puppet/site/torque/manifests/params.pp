@@ -2,6 +2,7 @@ class torque::params {
   $server_name = 'localhost'
   $nodes = {}
   $mom_export_node = true
+  $server_purge_nodes = true
 
   case $::operatingsystem {
     'redhat','centos','scientific','oraclelinux': {

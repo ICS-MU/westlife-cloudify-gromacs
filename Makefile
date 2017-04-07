@@ -94,8 +94,15 @@ cfm-exec-%:
 	cfy executions start -d $(CFM_DEPLOYMENT) -w $*
 	sleep 10
 
-cfm-clean:
-	cfy deployments delete -d $(CFM_DEPLOYMENT)
+cfm-scale-up:
+	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodes' -p 'delta=+1'
+
+cfm-scale-down:
+	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodes' -p 'delta=-1'
+
+cfm-clean: 
+	-cfy executions start -d $(CFM_DEPLOYMENT) -w uninstall
+	-cfy deployments delete -d $(CFM_DEPLOYMENT)
 	cfy blueprints delete -b $(CFM_BLUEPRINT)
 
 

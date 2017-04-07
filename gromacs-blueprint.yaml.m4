@@ -5,15 +5,18 @@ description: >
   Gromacs portal setup via FedCloud OCCI and Puppet.
 
 imports:
-  - http://getcloudify.org/spec/cloudify/4.0m4/types.yaml
+  - http://getcloudify.org/spec/cloudify/3.4/types.yaml
 #  - http://getcloudify.org/spec/fabric-plugin/1.3.1/plugin.yaml
   - https://raw.githubusercontent.com/vholer/cloudify-fabric-plugin/master/plugin.yaml
   - http://getcloudify.org/spec/diamond-plugin/1.3.1/plugin.yaml
   - https://raw.githubusercontent.com/vholer/cloudify-occi-plugin-experimental/master/plugin.yaml
+  - https://raw.githubusercontent.com/vholer/cloudify-westlife-workflows/master/plugin.yaml
   - types/puppet.yaml
   - types/dbms.yaml
   - types/server.yaml
+  - types/torqueserver.yaml
   - types/webserver.yaml
+  - types/scale.yaml
 
 inputs:
   # OCCI
@@ -158,9 +161,11 @@ node_templates:
         target: olinNode
       - type: example.relationships.puppet.connected_to
         target: torqueServer
+      - type: cloudify.relationships.depends_on
+        target: olinStorage
 
   torqueServer:
-    type: _NODE_WEBSERVER_ #TODO
+    type: _NODE_TORQUESERVER_
     instances:
       deploy: 1
     properties:
@@ -185,12 +190,6 @@ node_templates:
       cloud_config: *cloud_configuration
       occi_config: *occi_configuration
       fabric_env: *fabric_env
-#    capabilities:
-#      scalable:
-#        properties:
-#          default_instances: 2
-#          min_instances: 0
-#          max_instances: 5
 
   workerScratch:
     type: cloudify.occi.nodes.Volume
@@ -220,6 +219,8 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: workerNode
+      - type: cloudify.relationships.depends_on
+        target: workerScratch
       - type: example.relationships.puppet.connected_to
         target: torqueServer
         source_interfaces:
@@ -258,12 +259,72 @@ groups:
   workerNodes:
     members: [workerNode]
 
+  healWorkerNodes:
+    members: [workerNode]
+    policies:
+      simple_autoheal_policy:
+        type: cloudify.policies.types.host_failure
+        properties:
+          service:
+            - .*workerNode.*.cpu.total.system
+          interval_between_workflows: 300
+        triggers:
+          auto_heal_trigger:
+            type: cloudify.policies.triggers.execute_workflow
+            parameters:
+              workflow: heal
+              workflow_parameters:
+                node_instance_id: { 'get_property': [ SELF, node_id ] }
+                diagnose_value: { 'get_property': [ SELF, diagnose ] }
+
+  scaleWorkerNodes:
+    members: [torqueServer]
+    policies:
+      up:
+        type: cloudify.policies.types.threshold
+        properties:
+          stability_time: 60
+          upper_bound: true
+          threshold: 2
+          service: '.*torque.jobs.queued$'
+          interval_between_workflows: 300
+        triggers:
+          execute_scale_workflow:
+            type: cloudify.policies.triggers.execute_workflow
+            parameters:
+              workflow: scale_min_max
+              workflow_parameters:
+                delta: 1
+                scalable_entity_name: workerNodes
+                scale_compute: true
+                max_instances: _WORKERS_MAX_
+      down:
+        type: cloudify.policies.types.threshold
+        properties:
+          stability_time: 120
+          upper_bound: false
+          threshold: 0
+          service: '.*torque.nodes.busy$'
+          interval_between_workflows: 300
+        triggers:
+          execute_scale_workflow:
+            type: cloudify.policies.triggers.execute_workflow
+            parameters:
+              workflow: scale_min_max
+              workflow_parameters:
+                delta: -1
+                scalable_entity_name: workerNodes
+                scale_compute: true
+                min_instances: _WORKERS_MIN_
+
 policies:
   scaleWorkerNodes:
     type: cloudify.policies.scaling
+    targets: [workerNodes]
     properties:
       default_instances: 1
-    targets: [workerNodes]
+#      min_instances: _WORKERS_MIN_
+#      max_instances: _WORKERS_MAX_
 
 outputs:
   web_endpoint:
