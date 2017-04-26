@@ -3,7 +3,7 @@
 # install agent
 function install_pc1_agent() {
     if ! [ -x /opt/puppetlabs/bin/puppet ]; then
-        ctx logger info 'Installing Puppet Agent'
+        ctx logger info 'Puppet: installing Puppet Agent'
         PC_REPO=$(ctx ${CTX_SIDE} node properties 'puppet_config.repo')
         if [ "x${PC_REPO}" != 'x' ]; then
             sudo rpm -i "${PC_REPO}" 
@@ -13,13 +13,13 @@ function install_pc1_agent() {
         if [ "x${PC_PACKAGE}" != 'x' ]; then
             sudo yum -y -q install "${PC_PACKAGE}"
         fi
-        ctx logger info 'Puppet Agent installed.' #TODO
+        ctx logger info 'Puppet: installing Puppet Agent ... done'
     fi
 
     if ! [ -x /opt/puppetlabs/puppet/bin/r10k ]; then
-        ctx logger info 'Installing r10k'
+        ctx logger info 'Puppet: installing r10k'
         sudo /opt/puppetlabs/puppet/bin/gem install --quiet r10k
-        ctx logger info 'r10k installed.'
+        ctx logger info 'Puppet: installing r10k ... done'
     fi
 }
 
@@ -30,17 +30,17 @@ function puppet_recipes() {
         mkdir -p "${1}"
         PC_DOWNLOAD=$(ctx ${CTX_SIDE} node properties 'puppet_config.download')
         MANIFESTS_FILE=$(ctx download-resource ${PC_DOWNLOAD})
-        echo -n 'Puppet: extracting recipes '
+        ctx logger info 'Puppet: extracting recipes'
         tar -xf ${MANIFESTS_FILE} -C ${1}
-        echo '... done'
+        ctx logger info 'Puppet: extracting recipes ... done'
 
         # install modules
         cd ${1}
         PUPPETFILE="${1}/Puppetfile"
-        echo -n 'Puppet: installing modules '
+        ctx logger info 'Puppet: installing modules '
         test -f ${PUPPETFILE} && \
             sudo /opt/puppetlabs/puppet/bin/r10k puppetfile install ${PUPPETFILE}
-        echo '... done'
+        ctx logger info 'Puppet: installing modules ... done'
     fi
 }
 
@@ -75,6 +75,11 @@ function puppet_facts() {
     export FACTER_CLOUDIFY_CTX_WORKFLOW_ID=${CTX_WORKFLOW_ID}
     export FACTER_CLOUDIFY_CTX_EXECUTION_ID=${CTX_EXEC_ID}
 
+    if [ -n "${CTX_REMOTE_SIDE}" ]; then
+        export FACTER_CLOUDIFY_CTX_REMOTE_INSTANCE_ID=${CTX_REMOTE_INSTANCE_ID}
+        export FACTER_CLOUDIFY_CTX_REMOTE_INSTANCE_HOST_IP=${CTX_REMOTE_INSTANCE_HOST_IP}
+    fi
+
     FACTSD="${1}/cloudify_facts_modules/facts.d/"
     mkdir -p ${FACTSD}
     echo "${CTX_INSTANCE_RUNTIME_PROPS}" >"${FACTSD}/runtime_properties.json"
@@ -97,11 +102,26 @@ if [ "x${MANIFEST}" = 'x' ]; then
     exit
 fi
 
+
 # context variables
 CTX_TYPE=$(ctx type)
 CTX_INSTANCE_ID=$(ctx ${CTX_SIDE} instance id)
 CTX_INSTANCE_RUNTIME_PROPS=$(ctx --json-output ${CTX_SIDE} instance runtime_properties)
 CTX_INSTANCE_HOST_IP=$(ctx ${CTX_SIDE} instance host_ip)
+
+# relationship remote side metadata
+if [ -n "${CTX_SIDE}" ]; then
+    if [ "${CTX_SIDE}" == 'source' ]; then
+        CTX_REMOTE_SIDE='target'
+    else
+        CTX_REMOTE_SIDE='source'
+    fi
+
+    CTX_REMOTE_INSTANCE_ID=$(ctx ${CTX_REMOTE_SIDE} instance id)
+    #CTX_REMOTE_INSTANCE_RUNTIME_PROPS=$(ctx --json-output ${CTX_REMOTE_SIDE} instance runtime_properties)
+    CTX_REMOTE_INSTANCE_HOST_IP=$(ctx ${CTX_REMOTE_SIDE} instance host_ip)
+fi
+
 CTX_NODE_ID=$(ctx ${CTX_SIDE} node id)
 CTX_NODE_NAME=$(ctx ${CTX_SIDE} node name)
 CTX_NODE_PROPS=$(ctx --json-output ${CTX_SIDE} node properties)
@@ -121,10 +141,13 @@ puppet_facts "${FACTS_DIR}"
 cd ${MANIFESTS}
 
 # run Puppet
-echo "Puppet: running manifest ${MANIFEST}"
-sudo -E /opt/puppetlabs/bin/puppet apply \
+ctx logger info "Puppet: running manifest ${MANIFEST}"
+
+PUPPET_OUT=$(sudo -E /opt/puppetlabs/bin/puppet apply \
     --hiera_config="${HIERA_DIR}/hiera.yaml" \
     --modulepath="${MANIFESTS}/modules:${MANIFESTS}/site:${FACTS_DIR}" \
-    --verbose --logdest=syslog --logdest=console \
-    ${MANIFEST}
-echo 'Puppet: done'
+    --verbose --logdest=syslog --logdest=console --color=no \
+    ${MANIFEST} 2>&1)
+
+ctx logger info "Puppet: ${PUPPET_OUT}"
+ctx logger info 'Puppet: done'

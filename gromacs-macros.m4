@@ -4,3 +4,4 @@ define(_NODE_WEBSERVER_,    ifdef(`_CFM_',`example.nodes.MonitoredWebServer', `e
 define(_NODE_DBMS_,         ifdef(`_CFM_',`example.nodes.MonitoredDBMS', `example.nodes.DBMS'))dnl
 define(_WORKERS_MIN_,       1)
 define(_WORKERS_MAX_,       3)
+define(_WORKERS_,           3)

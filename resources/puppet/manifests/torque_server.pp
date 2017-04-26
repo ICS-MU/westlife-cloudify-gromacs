@@ -1,21 +1,34 @@
 include ::westlife::nofirewall
 
-if ($::cloudify_ctx_type == 'node-instance') or ($::cloudify_ctx_operation_name == 'establish') {
+if ($::cloudify_ctx_type == 'node-instance') or
+   ($::cloudify_ctx_operation_name in ['establish', 'unlink'])
+{
   include ::torque::scheduler
   include ::torque::server
 
   $facts.each |String $key, $value| {
-    if $key =~ /^torque_node_(.+)$/ {
-      $_node_fqdn = regsubst($1, '_', '.', 'G')
-      warning("Node ${_node_fqdn}")
-      torque::mom::node { $_node_fqdn:
-        ensure      => 'present',
-        np          => $value,
-        ntype       => 'cluster',
-        properties  => 'num_node_boards=1',
-        server_name => 'localhost',
-        membership  => inclusive,
-        provider    => 'parsed',
+    if $key =~ /^torque_node_(.*)$/ {
+      $_id = $1
+
+      unless has_key($value, 'undeployed') {
+        warning("Torque node: ${value['name']} ${value['procs']}")
+
+        if ($::cloudify_ctx_operation_name == 'unlink') and
+          ($_id == $::cloudify_ctx_remote_instance_id)
+        {
+          warning("Skipping unlinked torque node: ${value['name']}")
+
+        } else {
+          ::torque::mom::node { $value['name']:
+            ensure      => 'present',
+            np          => $value['procs'],
+            ntype       => 'cluster',
+            properties  => 'num_node_boards=1',
+            server_name => 'localhost',
+            membership  => inclusive,
+            provider    => 'parsed',
+          }
+        }
       }
     }
   }

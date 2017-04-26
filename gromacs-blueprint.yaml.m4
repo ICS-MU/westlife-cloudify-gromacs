@@ -16,7 +16,6 @@ imports:
   - types/server.yaml
   - types/torqueserver.yaml
   - types/webserver.yaml
-  - types/scale.yaml
 
 inputs:
   # OCCI
@@ -228,12 +227,18 @@ node_templates:
             postconfigure:
               inputs:
                 manifest: manifests/torque_mom.pp     # nastaveni jmena/np mom na serveru
+            unlink:
+              inputs:
+                manifest: manifests/torque_mom.pp     # zruseni np mom na serveru
         target_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
               inputs:
                 manifest: manifests/torque_server.pp  # nastaveni ::torque_sever_name
             establish:
+              inputs:
+                manifest: manifests/torque_server.pp  # rekonfigurace serveru
+            unlink:
               inputs:
                 manifest: manifests/torque_server.pp  # rekonfigurace serveru
 
@@ -322,7 +327,7 @@ policies:
     type: cloudify.policies.scaling
     targets: [workerNodes]
     properties:
-      default_instances: 1
+      default_instances: _WORKERS_
 #      min_instances: _WORKERS_MIN_
 #      max_instances: _WORKERS_MAX_
 
