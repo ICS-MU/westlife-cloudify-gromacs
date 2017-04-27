@@ -10,24 +10,22 @@ if ($::cloudify_ctx_type == 'node-instance') or
     if $key =~ /^torque_node_(.*)$/ {
       $_id = $1
 
-      unless has_key($value, 'undeployed') {
+      if ($::cloudify_ctx_operation_name == 'unlink') and
+        ($_id == $::cloudify_ctx_remote_instance_id)
+      {
+        warning("Skipping unlinked torque node: ${value['name']}")
+
+      } else {
         warning("Torque node: ${value['name']} ${value['procs']}")
 
-        if ($::cloudify_ctx_operation_name == 'unlink') and
-          ($_id == $::cloudify_ctx_remote_instance_id)
-        {
-          warning("Skipping unlinked torque node: ${value['name']}")
-
-        } else {
-          ::torque::mom::node { $value['name']:
-            ensure      => 'present',
-            np          => $value['procs'],
-            ntype       => 'cluster',
-            properties  => 'num_node_boards=1',
-            server_name => 'localhost',
-            membership  => inclusive,
-            provider    => 'parsed',
-          }
+        ::torque::mom::node { $value['name']:
+          ensure      => 'present',
+          np          => $value['procs'],
+          ntype       => 'cluster',
+          properties  => 'num_node_boards=1',
+          server_name => 'localhost',
+          membership  => inclusive,
+          provider    => 'parsed',
         }
       }
     }

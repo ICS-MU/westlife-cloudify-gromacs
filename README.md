@@ -29,10 +29,35 @@ make cfy-deploy
 
 #### Destroy deployment
 
-```bash
+```
 make cfy-undeploy
 ```
 
 ## Cloudify Manager
 
+#### Bootstrap CFM
+
 TBD
+
+#### Run deployment
+
+Get valid X.509 VOMS certificate into `/tmp/x509up_u1000` on
+the Cloudify Manager instance.
+
+```
+source ~/cfy/bin/activate
+make cfm-deploy
+```
+
+#### Manual scaling
+
+```bash
+make cfm-scale-up
+make cfm-scale-down
+```
+
+#### Destroy deployment
+
+```bash
+make cfm-undeploy
+```

@@ -49,6 +49,11 @@ cfy-test: cfy-deploy cfy-undeploy
 
 cfm-deploy: cfm-init cfm-exec-install
 
+cfm-undeploy: 
+	-cfy executions start -d $(CFM_DEPLOYMENT) -w uninstall
+	-cfy deployments delete -d $(CFM_DEPLOYMENT)
+	cfy blueprints delete -b $(CFM_BLUEPRINT)
+
 cfm-test: cfm-deploy cfm-exec-uninstall cfm-clean
 
 
@@ -99,11 +104,6 @@ cfm-scale-up:
 
 cfm-scale-down:
 	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodes' -p 'delta=-1'
-
-cfm-clean: 
-	-cfy executions start -d $(CFM_DEPLOYMENT) -w uninstall
-	-cfy deployments delete -d $(CFM_DEPLOYMENT)
-	cfy blueprints delete -b $(CFM_BLUEPRINT)
 
 
 ### Bootstrap cfy ################################
