@@ -272,7 +272,7 @@ groups:
         properties:
           service:
             - .*workerNode.*.cpu.total.system
-          interval_between_workflows: 300
+          interval_between_workflows: 1800
         triggers:
           auto_heal_trigger:
             type: cloudify.policies.triggers.execute_workflow
@@ -288,11 +288,11 @@ groups:
       up:
         type: cloudify.policies.types.threshold
         properties:
-          stability_time: 60
+          stability_time: 600
           upper_bound: true
           threshold: 2
           service: '.*torque.jobs.queued$'
-          interval_between_workflows: 300
+          interval_between_workflows: 1800
         triggers:
           execute_scale_workflow:
             type: cloudify.policies.triggers.execute_workflow
@@ -306,11 +306,11 @@ groups:
       down:
         type: cloudify.policies.types.threshold
         properties:
-          stability_time: 120
+          stability_time: 600
           upper_bound: false
           threshold: 0
           service: '.*torque.nodes.busy$'
-          interval_between_workflows: 300
+          interval_between_workflows: 1800
         triggers:
           execute_scale_workflow:
             type: cloudify.policies.triggers.execute_workflow
