@@ -48,12 +48,15 @@ function puppet_recipes() {
 function puppet_hiera() {
     cat >>"${1}/hiera.yaml" <<EOF
 ---
-:backends:
-  - json
-:json:
-  :datadir: "${1}"
-:hierarchy:
-  - 'common'
+version: 5
+
+defaults:
+  datadir: "${1}"
+  data_hash: json_data
+
+hierarchy:
+  - name: Common
+    path: "common.json"
 EOF
 
     HIERA_DATA=$(ctx --json-output ${CTX_SIDE} node properties 'puppet_config.hiera' 2>/dev/null)
@@ -143,7 +146,7 @@ cd ${MANIFESTS}
 # run Puppet
 ctx logger info "Puppet: running manifest ${MANIFEST}"
 
-PUPPET_OUT=$(sudo -E /opt/puppetlabs/bin/puppet apply \
+PUPPET_OUT=$(LANG=C LC_ALL=C sudo -E /opt/puppetlabs/bin/puppet apply \
     --hiera_config="${HIERA_DIR}/hiera.yaml" \
     --modulepath="${MANIFESTS}/modules:${MANIFESTS}/site:${FACTS_DIR}" \
     --verbose --logdest=syslog --logdest=console --color=no \
