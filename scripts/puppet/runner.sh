@@ -1,17 +1,49 @@
 #!/bin/bash
 
+ctx_node_properties() {
+    PROP=$(ctx --json-output ${CTX_SIDE} node properties "$1" 2>/dev/null)
+
+    if [ -z "${PROP}" ]; then
+        if ! jq --version &>/dev/null; then
+            (
+                which yum && sudo yum -y install jq
+            ) &>/dev/null
+        fi
+
+        MAIN_KEY=${1%%\.*}
+        JSON_KEY=${1#*\.}
+
+        if [ "${MAIN_KEY}" = "${JSON_KEY}" ]; then
+            JSON_KEY=''
+        fi
+
+        JSON_VAL=$(eval $(echo echo \$"${MAIN_KEY}"))
+        PROP=$(echo "${JSON_VAL}" | jq -cr ".${JSON_KEY}" 2>/dev/null)
+
+        if [ "${PROP}" = 'null' ]; then
+            PROP=''
+        fi
+    fi
+
+    echo "${PROP}"
+}
+
 # install agent
 function install_pc1_agent() {
     if ! [ -x /opt/puppetlabs/bin/puppet ]; then
         ctx logger info 'Puppet: installing Puppet Agent'
-        PC_REPO=$(ctx ${CTX_SIDE} node properties 'puppet_config.repo')
+        PC_REPO=$(ctx_node_properties 'puppet_config.repo')
         if [ "x${PC_REPO}" != 'x' ]; then
             sudo rpm -i "${PC_REPO}" 
+        else
+            ctx logger warning 'Puppet: missing repository package'
         fi
 
-        PC_PACKAGE=$(ctx ${CTX_SIDE} node properties 'puppet_config.package')
+        PC_PACKAGE=$(ctx_node_properties 'puppet_config.package')
         if [ "x${PC_PACKAGE}" != 'x' ]; then
             sudo yum -y -q install "${PC_PACKAGE}"
+        else
+            ctx logger error 'Puppet: missing Puppet package name'
         fi
         ctx logger info 'Puppet: installing Puppet Agent ... done'
     fi
@@ -28,7 +60,7 @@ function puppet_recipes() {
     if ! [ -d "${1}" ]; then
         # download and extract manifests
         mkdir -p "${1}"
-        PC_DOWNLOAD=$(ctx ${CTX_SIDE} node properties 'puppet_config.download')
+        PC_DOWNLOAD=$(ctx_node_properties 'puppet_config.download')
         MANIFESTS_FILE=$(ctx download-resource ${PC_DOWNLOAD})
         ctx logger info 'Puppet: extracting recipes'
         tar -xf ${MANIFESTS_FILE} -C ${1}
@@ -59,7 +91,7 @@ hierarchy:
     path: "common.json"
 EOF
 
-    HIERA_DATA=$(ctx --json-output ${CTX_SIDE} node properties 'puppet_config.hiera' 2>/dev/null)
+    HIERA_DATA=$(ctx_node_properties 'puppet_config.hiera' 2>/dev/null)
     if [ "x${HIERA_DATA}" != 'x' ]; then
         echo "${HIERA_DATA}" >"${1}/common.json"
     fi
@@ -99,7 +131,7 @@ install_pc1_agent
 
 CTX_TYPE=$(ctx type)
 CTX_OPERATION_NAME=$(ctx operation name | rev | cut -d. -f1 | rev)
-MANIFEST="${manifest:-$(ctx ${CTX_SIDE} node properties "puppet_config.manifests.${CTX_OPERATION_NAME}" 2>/dev/null)}"
+MANIFEST="${manifest:-$(ctx_node_properties "puppet_config.manifests.${CTX_OPERATION_NAME}" 2>/dev/null)}"
 if [ "x${MANIFEST}" = 'x' ]; then
     ctx logger info 'Skipping lifecycle operation, no Puppet manifest'
     exit
