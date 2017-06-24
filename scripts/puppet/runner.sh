@@ -178,11 +178,25 @@ cd ${MANIFESTS}
 # run Puppet
 ctx logger info "Puppet: running manifest ${MANIFEST}"
 
-PUPPET_OUT=$(LANG=C LC_ALL=C sudo -E /opt/puppetlabs/bin/puppet apply \
+PUPPET_OUT=$(LANG=C LC_ALL=C sudo -En /opt/puppetlabs/bin/puppet apply \
     --hiera_config="${HIERA_DIR}/hiera.yaml" \
     --modulepath="${MANIFESTS}/modules:${MANIFESTS}/site:${FACTS_DIR}" \
-    --verbose --logdest=syslog --logdest=console --color=no \
+    --verbose --logdest=syslog --logdest=console --color=no --detailed-exitcodes \
     ${MANIFEST} 2>&1)
+
+PUPPET_RTN=$?
 
 ctx logger info "Puppet: ${PUPPET_OUT}"
 ctx logger info 'Puppet: done'
+
+# https://docs.puppet.com/puppet/latest/man/apply.html
+# 0: The run succeeded with no changes or failures; the system was already in the desired state.
+# 1: The run failed.
+# 2: The run succeeded, and some resources were changed.
+# 4: The run succeeded, and some resources failed.
+# 6: The run succeeded, and included both changes and failures.
+if [ ${PUPPET_RTN} -eq 1 ] || [ ${PUPPET_RTN} -eq 4 ] || [ ${PUPPET_RTN} -eq 6 ]; then
+    exit ${PUPPET_RTN}
+else
+    exit 0
+fi
