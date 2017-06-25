@@ -11,6 +11,11 @@ resources/puppet/site/gromacs/files/private/
 # Generated blueprints
 cfy-gromacs-blueprint.yaml
 cfy-gromacs-inputs.yaml
+cfm-gromacs-blueprint.yaml
+cfm-gromacs-inputs.yaml
+
+# Other
+get-cloudify.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

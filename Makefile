@@ -7,6 +7,7 @@ CFM_DEPLOYMENT=gromacs
 RETRIES=50
 VIRTUAL_ENV?=~/cfy
 GROMACS_PORTAL?=git@github.com:CERIT-SC/gromacs-portal.git
+CFY_VERSION?=3.4.2
 
 .PHONY: blueprints inputs validate test clean
 
@@ -113,5 +114,9 @@ bootstrap:
 	which virtualenv || ( yum install -y python-virtualenv || apt-get install -y python-virtualenv )
 	which pip || ( yum install -y python-pip || apt-get install -y python-pip )
 	wget -O get-cloudify.py 'http://repository.cloudifysource.org/org/cloudify3/get-cloudify.py'
+ifeq ($(CFY_VERSION), )
 	python get-cloudify.py -e $(VIRTUAL_ENV)
+else
+	python get-cloudify.py -e $(VIRTUAL_ENV) --version $(CFY_VERSION)
+endif
 	unlink get-cloudify.py
