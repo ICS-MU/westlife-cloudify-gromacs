@@ -1,15 +1,9 @@
 #!/bin/bash
 
 ctx_node_properties() {
-    PROP=$(ctx --json-output ${CTX_SIDE} node properties "$1" 2>/dev/null)
+    PROP=$(ctx --json-output ${CTX_SIDE} node properties "$1" 2>/dev/null | jq -crM '.')
 
     if [ -z "${PROP}" ]; then
-        if ! jq --version &>/dev/null; then
-            (
-                which yum && sudo yum -y install jq
-            ) &>/dev/null
-        fi
-
         MAIN_KEY=${1%%\.*}
         JSON_KEY=${1#*\.}
 
@@ -26,6 +20,13 @@ ctx_node_properties() {
     fi
 
     echo "${PROP}"
+}
+
+# install jq
+function install_jq() {
+    if ! jq --version &>/dev/null; then
+        which yum &>/dev/null && sudo yum -yq install jq
+    fi
 }
 
 # install agent
@@ -127,6 +128,7 @@ function puppet_facts() {
 CTX_SIDE="${relationship_side:-$1}"
 
 # install Puppet on very first run
+install_jq
 install_pc1_agent
 
 CTX_TYPE=$(ctx type)
