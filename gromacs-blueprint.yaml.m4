@@ -7,10 +7,10 @@ description: >
 imports:
   - http://getcloudify.org/spec/cloudify/3.4/types.yaml
 #  - http://getcloudify.org/spec/fabric-plugin/1.3.1/plugin.yaml
-  - https://raw.githubusercontent.com/vholer/cloudify-fabric-plugin/master/plugin.yaml
+  - https://raw.githubusercontent.com/ICS-MU/westlife-cloudify-fabric-plugin/master/plugin.yaml
   - http://getcloudify.org/spec/diamond-plugin/1.3.1/plugin.yaml
-  - https://raw.githubusercontent.com/vholer/cloudify-occi-plugin-experimental/master/plugin.yaml
-  - https://raw.githubusercontent.com/vholer/cloudify-westlife-workflows/master/plugin.yaml
+  - https://raw.githubusercontent.com/ICS-MU/westlife-cloudify-occi-plugin/master/plugin.yaml
+  - https://raw.githubusercontent.com/ICS-MU/westlife-cloudify-westlife-workflows/master/plugin.yaml
   - types/puppet.yaml
   - types/dbms.yaml
   - types/server.yaml

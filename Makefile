@@ -6,7 +6,7 @@ CFM_BLUEPRINT=gromacs
 CFM_DEPLOYMENT=gromacs
 RETRIES=50
 VIRTUAL_ENV?=~/cfy
-GROMACS_PORTAL?=git@github.com:CERIT-SC/gromacs-portal.git
+GROMACS_PORTAL?=git@github.com:ICS-MU/westlife-gromacs-portal.git
 CFY_VERSION?=3.4.2
 
 .PHONY: blueprints inputs validate test clean
@@ -50,7 +50,7 @@ cfy-test: cfy-deploy cfy-undeploy
 
 cfm-deploy: cfm-init cfm-exec-install
 
-cfm-undeploy: 
+cfm-undeploy:
 	-cfy executions start -d $(CFM_DEPLOYMENT) -w uninstall
 	-cfy deployments delete -d $(CFM_DEPLOYMENT)
 	cfy blueprints delete -b $(CFM_BLUEPRINT)
