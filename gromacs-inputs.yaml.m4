@@ -42,6 +42,17 @@ worker_resource_tpl: 'large'
 worker_availability_zone: 'uuid_fedcloud_cerit_sc_103'
 worker_scratch_size: 15
 
+dnl
+dnl ############################################
+dnl # Instances count
+dnl #
+dnl # Note: these can't be used inside the blueprint as inputs,
+dnl # macro definitions for M4 help here to have everything on
+dnl # one place. Please, respect the different syntax.
+dnl #
+define(_WORKERS_,       1)dnl	# initial count
+define(_WORKERS_MIN_,   1)dnl	# minimum
+define(_WORKERS_MAX_,   3)dnl	# maximum
 
 ############################################
 # Application

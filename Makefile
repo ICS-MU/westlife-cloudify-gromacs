@@ -14,12 +14,12 @@ CFY_VERSION?=3.4.2
 # blueprints
 blueprints: cfy-$(BLUEPRINT) cfm-$(BLUEPRINT)
 
-cfy-$(BLUEPRINT): $(M4BLUEPRINT)
-	m4 $? >".$@"
+cfy-$(BLUEPRINT): $(M4BLUEPRINT) cfy-$(INPUTS)
+	m4 $(M4BLUEPRINT) >".$@"
 	mv ".$@" $@
 
-cfm-$(BLUEPRINT): $(M4BLUEPRINT)
-	m4 -D_CFM_ $? >".$@"
+cfm-$(BLUEPRINT): $(M4BLUEPRINT) cfy-$(INPUTS)
+	m4 -D_CFM_ $(M4BLUEPRINT) >".$@"
 	mv ".$@" $@
 
 # inputs

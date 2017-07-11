@@ -1,8 +1,17 @@
-include(gromacs-macros.m4)dnl
 tosca_definitions_version: cloudify_dsl_1_3
 
 description: >
   Gromacs portal setup via FedCloud OCCI and Puppet.
+
+define(_NODE_SERVER_,       ifdef(`_CFM_',`example.nodes.MonitoredServer',`example.nodes.Server'))dnl
+define(_NODE_TORQUESERVER_, ifdef(`_CFM_',`example.nodes.MonitoredTorqueServer',`example.nodes.TorqueServer'))dnl
+define(_NODE_WEBSERVER_,    ifdef(`_CFM_',`example.nodes.MonitoredWebServer', `example.nodes.WebServer'))dnl
+define(_NODE_DBMS_,         ifdef(`_CFM_',`example.nodes.MonitoredDBMS', `example.nodes.DBMS'))dnl
+
+dnl *** From gromacs-inputs.yaml.m4 take only macros, drop regular texts.
+divert(`-1')dnl
+include(gromacs-inputs.yaml.m4)dnl
+divert(`0')dnl
 
 imports:
   - http://getcloudify.org/spec/cloudify/3.4/types.yaml
