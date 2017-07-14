@@ -9,27 +9,27 @@ VIRTUAL_ENV?=~/cfy
 GROMACS_PORTAL?=git@github.com:ICS-MU/westlife-gromacs-portal.git
 CFY_VERSION?=3.4.2
 
-.PHONY: blueprints inputs validate test clean bootstrap bootstrap-cfy bootstrap-occi
+.PHONY: blueprints inputs validate test clean bootstrap bootstrap-cfy bootstrap-occi bootstrap-m4
 
 # blueprints
 blueprints: cfy-$(BLUEPRINT) cfm-$(BLUEPRINT)
 
-cfy-$(BLUEPRINT): $(M4BLUEPRINT) cfy-$(INPUTS)
+cfy-$(BLUEPRINT): $(M4BLUEPRINT) cfy-$(INPUTS) bootstrap-m4
 	m4 $(M4BLUEPRINT) >".$@"
 	mv ".$@" $@
 
-cfm-$(BLUEPRINT): $(M4BLUEPRINT) cfy-$(INPUTS)
+cfm-$(BLUEPRINT): $(M4BLUEPRINT) cfy-$(INPUTS) bootstrap-m4
 	m4 -D_CFM_ $(M4BLUEPRINT) >".$@"
 	mv ".$@" $@
 
 # inputs
 inputs: cfy-$(INPUTS) cfm-$(INPUTS)
 
-cfy-$(INPUTS): $(M4INPUTS) resources/ssh_cfy/id_rsa resources/ssh_gromacs/id_rsa
+cfy-$(INPUTS): $(M4INPUTS) resources/ssh_cfy/id_rsa resources/ssh_gromacs/id_rsa bootstrap-m4
 	m4 $(M4INPUTS) >".$@"
 	mv ".$@" $@
 
-cfm-$(INPUTS): $(M4INPUTS) resources/ssh_cfy/id_rsa resources/ssh_gromacs/id_rsa
+cfm-$(INPUTS): $(M4INPUTS) resources/ssh_cfy/id_rsa resources/ssh_gromacs/id_rsa bootstrap-m4
 	m4 -D_CFM_ -D_CFM_BLUEPRINT_=$(CFM_BLUEPRINT) $(M4INPUTS) >".$@"
 	mv ".$@" $@
 
@@ -109,15 +109,17 @@ cfm-scale-down:
 
 ### Bootstrap ####################################
 
-bootstrap: bootstrap-cfy bootstrap-occi
+bootstrap: bootstrap-cfy bootstrap-occi bootstrap-m4
+
+bootstrap-m4:
 	which m4 >/dev/null 2>&1 || \
-		yum install -y m4 || \
-		apt-get install -y m4
+		sudo yum install -y m4 || \
+		sudo apt-get install -y m4
 
 bootstrap-cfy:
 	which virtualenv pip >/dev/null 2>&1 || \
-		yum install -y python-virtualenv python-pip || \
-		apt-get install -y python-virtualenv python-pip
+		sudo yum install -y python-virtualenv python-pip || \
+		sudo apt-get install -y python-virtualenv python-pip
 	wget -O get-cloudify.py 'http://repository.cloudifysource.org/org/cloudify3/get-cloudify.py'
 ifeq ($(CFY_VERSION), )
 	python get-cloudify.py -e $(VIRTUAL_ENV) --upgrade
@@ -128,7 +130,7 @@ endif
 
 bootstrap-occi:
 	which occi >/dev/null 2>&1 || \
-		yum install -y ruby-devel openssl-devel gcc gcc-c++ ruby rubygems || \
-		apt-get install -y ruby rubygems ruby-dev
+		sudo yum install -y ruby-devel openssl-devel gcc gcc-c++ ruby rubygems || \
+		sudo apt-get install -y ruby rubygems ruby-dev
 	which occi >/dev/null 2>&1 || \
 		gem install occi-cli
