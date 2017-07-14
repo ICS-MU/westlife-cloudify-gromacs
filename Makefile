@@ -9,7 +9,7 @@ VIRTUAL_ENV?=~/cfy
 GROMACS_PORTAL?=git@github.com:ICS-MU/westlife-gromacs-portal.git
 CFY_VERSION?=3.4.2
 
-.PHONY: blueprints inputs validate test clean
+.PHONY: blueprints inputs validate test clean bootstrap bootstrap-cfy bootstrap-occi
 
 # blueprints
 blueprints: cfy-$(BLUEPRINT) cfm-$(BLUEPRINT)
@@ -107,16 +107,22 @@ cfm-scale-down:
 	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodes' -p 'delta=-1'
 
 
-### Bootstrap cfy ################################
+### Bootstrap ####################################
 
-bootstrap:
-	test -f get-cloudify.py && unlink get-cloudify.py || /bin/true
-	which virtualenv || ( yum install -y python-virtualenv || apt-get install -y python-virtualenv )
-	which pip || ( yum install -y python-pip || apt-get install -y python-pip )
+bootstrap: bootstrap-cfy bootstrap-occi
+
+bootstrap-cfy:
+	yum install -y python-virtualenv python-pip || \
+		apt-get install -y python-virtualenv python-pip
 	wget -O get-cloudify.py 'http://repository.cloudifysource.org/org/cloudify3/get-cloudify.py'
 ifeq ($(CFY_VERSION), )
-	python get-cloudify.py -e $(VIRTUAL_ENV)
+	python get-cloudify.py -e $(VIRTUAL_ENV) --upgrade
 else
-	python get-cloudify.py -e $(VIRTUAL_ENV) --version $(CFY_VERSION)
+	python get-cloudify.py -e $(VIRTUAL_ENV) --upgrade --version $(CFY_VERSION)
 endif
 	unlink get-cloudify.py
+
+bootstrap-occi:
+	yum install -y ruby-devel openssl-devel gcc gcc-c++ ruby rubygems || \
+		apt-get install -y ruby rubygems ruby-dev
+	gem install occi-cli
