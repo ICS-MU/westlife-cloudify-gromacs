@@ -110,9 +110,13 @@ cfm-scale-down:
 ### Bootstrap ####################################
 
 bootstrap: bootstrap-cfy bootstrap-occi
+	which m4 >/dev/null 2>&1 || \
+		yum install -y m4 || \
+		apt-get install -y m4
 
 bootstrap-cfy:
-	yum install -y python-virtualenv python-pip || \
+	which virtualenv pip >/dev/null 2>&1 || \
+		yum install -y python-virtualenv python-pip || \
 		apt-get install -y python-virtualenv python-pip
 	wget -O get-cloudify.py 'http://repository.cloudifysource.org/org/cloudify3/get-cloudify.py'
 ifeq ($(CFY_VERSION), )
@@ -123,6 +127,8 @@ endif
 	unlink get-cloudify.py
 
 bootstrap-occi:
-	yum install -y ruby-devel openssl-devel gcc gcc-c++ ruby rubygems || \
+	which occi >/dev/null 2>&1 || \
+		yum install -y ruby-devel openssl-devel gcc gcc-c++ ruby rubygems || \
 		apt-get install -y ruby rubygems ruby-dev
-	gem install occi-cli
+	which occi >/dev/null 2>&1 || \
+		gem install occi-cli
