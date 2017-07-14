@@ -100,10 +100,10 @@ cfm-exec-%:
 	cfy executions start -d $(CFM_DEPLOYMENT) -w $*
 	sleep 10
 
-cfm-scale-up:
+cfm-scale-out:
 	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodes' -p 'delta=+1'
 
-cfm-scale-down:
+cfm-scale-in:
 	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodes' -p 'delta=-1'
 
 
