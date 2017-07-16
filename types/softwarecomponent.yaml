@@ -1,6 +1,6 @@
 node_types:
-  gromacs.nodes.WebServer:
+  gromacs.nodes.SoftwareComponent:
     derived_from: gromacs.nodes.puppet.SoftwareComponent
 
-  gromacs.nodes.MonitoredWebServer:
+  gromacs.nodes.MonitoredSoftwareComponent:
     derived_from: gromacs.nodes.puppet.SoftwareComponent

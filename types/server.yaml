@@ -1,12 +1,12 @@
 node_types:
-  example.nodes.Server:
-    derived_from: example.nodes.puppet.server
+  gromacs.nodes.Server:
+    derived_from: gromacs.nodes.puppet.server
     properties:
       install_agent:
         default: False
 
-  example.nodes.MonitoredServer:
-    derived_from: example.nodes.puppet.server
+  gromacs.nodes.MonitoredServer:
+    derived_from: gromacs.nodes.puppet.server
     interfaces:
       cloudify.interfaces.monitoring_agent:
         install:

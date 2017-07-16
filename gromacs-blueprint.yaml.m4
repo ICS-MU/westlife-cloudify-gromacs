@@ -3,10 +3,10 @@ tosca_definitions_version: cloudify_dsl_1_3
 description: >
   Gromacs portal setup via FedCloud OCCI and Puppet.
 
-define(_NODE_SERVER_,       ifdef(`_CFM_',`example.nodes.MonitoredServer',`example.nodes.Server'))dnl
-define(_NODE_TORQUESERVER_, ifdef(`_CFM_',`example.nodes.MonitoredTorqueServer',`example.nodes.TorqueServer'))dnl
-define(_NODE_WEBSERVER_,    ifdef(`_CFM_',`example.nodes.MonitoredWebServer', `example.nodes.WebServer'))dnl
-define(_NODE_DBMS_,         ifdef(`_CFM_',`example.nodes.MonitoredDBMS', `example.nodes.DBMS'))dnl
+define(_NODE_SERVER_,       ifdef(`_CFM_',`gromacs.nodes.MonitoredServer',`gromacs.nodes.Server'))dnl
+define(_NODE_TORQUESERVER_, ifdef(`_CFM_',`gromacs.nodes.MonitoredTorqueServer',`gromacs.nodes.TorqueServer'))dnl
+define(_NODE_WEBSERVER_,    ifdef(`_CFM_',`gromacs.nodes.MonitoredWebServer', `gromacs.nodes.WebServer'))dnl
+define(_NODE_SWCOMPONENT_,  ifdef(`_CFM_',`gromacs.nodes.MonitoredSoftwareComponent', `gromacs.nodes.SoftwareComponent'))dnl
 
 dnl *** From gromacs-inputs.yaml.m4 take only macros, drop regular texts.
 divert(`-1')dnl
@@ -21,8 +21,8 @@ imports:
   - https://raw.githubusercontent.com/ICS-MU/westlife-cloudify-occi-plugin/master/plugin.yaml
   - https://raw.githubusercontent.com/ICS-MU/westlife-cloudify-westlife-workflows/master/plugin.yaml
   - types/puppet.yaml
-  - types/dbms.yaml
   - types/server.yaml
+  - types/softwarecomponent.yaml
   - types/torqueserver.yaml
   - types/webserver.yaml
 
@@ -145,7 +145,7 @@ node_templates:
         target: olinNode
 
   gromacsPortal:
-    type: _NODE_WEBSERVER_ #TODO
+    type: _NODE_WEBSERVER_
     instances:
       deploy: 1
     properties:
@@ -167,7 +167,7 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: olinNode
-      - type: example.relationships.puppet.connected_to
+      - type: gromacs.relationships.puppet.connected_to
         target: torqueServer
       - type: cloudify.relationships.depends_on
         target: olinStorage
@@ -210,7 +210,7 @@ node_templates:
         target: workerNode
 
   torqueMom:
-    type: _NODE_WEBSERVER_ #TODO
+    type: _NODE_SWCOMPONENT_
     instances:
       deploy: 1
     properties:
@@ -229,7 +229,7 @@ node_templates:
         target: workerNode
       - type: cloudify.relationships.depends_on
         target: workerScratch
-      - type: example.relationships.puppet.connected_to
+      - type: gromacs.relationships.puppet.connected_to
         target: torqueServer
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
@@ -252,7 +252,7 @@ node_templates:
                 manifest: manifests/torque_server.pp  # rekonfigurace serveru
 
   gromacs:
-    type: _NODE_WEBSERVER_ #TODO
+    type: _NODE_SWCOMPONENT_
     instances:
       deploy: 1
     properties:

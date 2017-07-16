@@ -1,11 +1,9 @@
 node_types:
-  example.nodes.TorqueServer:
-    #derived_from: cloudify.nodes.WebServer
-    derived_from: example.nodes.puppet.SoftwareComponent
+  gromacs.nodes.TorqueServer:
+    derived_from: gromacs.nodes.puppet.SoftwareComponent
 
-  example.nodes.MonitoredTorqueServer:
-    #derived_from: example.nodes.WebServer
-    derived_from: example.nodes.puppet.SoftwareComponent
+  gromacs.nodes.MonitoredTorqueServer:
+    derived_from: gromacs.nodes.puppet.SoftwareComponent
     interfaces:
       cloudify.interfaces.monitoring:
         start:

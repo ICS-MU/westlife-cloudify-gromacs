@@ -1,11 +1,11 @@
 node_types:
-  example.nodes.puppet.server:
+  gromacs.nodes.puppet.server:
     derived_from: cloudify.occi.nodes.Server
     properties:
       fabric_env:
         default: {}
 
-  example.nodes.puppet.SoftwareComponent:
+  gromacs.nodes.puppet.SoftwareComponent:
     derived_from: cloudify.nodes.SoftwareComponent
     properties:
       fabric_env:
@@ -61,7 +61,7 @@ node_types:
               default: { get_property: [ SELF, puppet_config ] }
 
 relationships:
-  example.relationships.puppet.connected_to:
+  gromacs.relationships.puppet.connected_to:
     derived_from: cloudify.relationships.connected_to
     source_interfaces:
       cloudify.interfaces.relationship_lifecycle:
