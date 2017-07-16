@@ -89,6 +89,9 @@ cfy-init: cfy-$(BLUEPRINT) cfy-$(INPUTS) resources/puppet.tar.gz
 cfy-exec-%:
 	cfy local execute -w $* --task-retries $(RETRIES)
 
+cfy-outputs:
+	cfy local outputs
+
 
 ### Cloudify Manager managed deployment ##########
 
@@ -105,6 +108,9 @@ cfm-scale-out:
 
 cfm-scale-in:
 	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodes' -p 'delta=-1'
+
+cfm-outputs:
+	cfy deployments outputs -d $(CFM_DEPLOYMENT)
 
 
 ### Bootstrap ####################################
