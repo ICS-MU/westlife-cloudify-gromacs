@@ -342,12 +342,8 @@ policies:
 
 outputs:
   web_endpoint:
-    description: Web application endpoint
+    description: Gromacs portal endpoint
     value:
       url: { concat: ['http://', { get_attribute: [olinNode, ip] }] }
-  batch_endpoint:
-    description: Batch server endpoint
-    value:
-      ip: { get_attribute: [olinNode, ip] }
 
 # vim: set syntax=yaml
