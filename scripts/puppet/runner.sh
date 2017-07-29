@@ -1,7 +1,10 @@
 #!/bin/bash
 
+IS_YUM=$(which yum &>/dev/null && echo yes)
+IS_APT=$(which apt-get &>/dev/null && echo yes)
+
 ctx_node_properties() {
-    PROP=$(ctx --json-output ${CTX_SIDE} node properties "$1" 2>/dev/null | jq -crM '.')
+    PROP=$(ctx --json-output ${CTX_SIDE} node properties "$1" 2>/dev/null | jq -c -r -M '.')
 
     if [ -z "${PROP}" ]; then
         MAIN_KEY=${1%%\.*}
@@ -12,7 +15,7 @@ ctx_node_properties() {
         fi
 
         JSON_VAL=$(eval $(echo echo \$"${MAIN_KEY}"))
-        PROP=$(echo "${JSON_VAL}" | jq -cr ".${JSON_KEY}" 2>/dev/null)
+        PROP=$(echo "${JSON_VAL}" | jq -c -r -M ".${JSON_KEY}" 2>/dev/null)
 
         if [ "${PROP}" = 'null' ]; then
             PROP=''
@@ -25,7 +28,11 @@ ctx_node_properties() {
 # install jq
 function install_jq() {
     if ! jq --version &>/dev/null; then
-        which yum &>/dev/null && sudo yum -yq install jq
+        if [ -n "${IS_YUM}" ]; then
+            sudo -n yum -yq install jq
+        elif [ -n "${IS_APT}" ]; then
+            sudo -n apt-get -y install jq >/dev/null
+        fi
     fi
 }
 
@@ -35,14 +42,26 @@ function install_pc1_agent() {
         ctx logger info 'Puppet: installing Puppet Agent'
         PC_REPO=$(ctx_node_properties 'puppet_config.repo')
         if [ "x${PC_REPO}" != 'x' ]; then
-            sudo rpm -i "${PC_REPO}" 
+            if [ -n "${IS_YUM}" ]; then
+                sudo -n rpm -i "${PC_REPO}" 
+            elif [ -n "${IS_APT}" ]; then
+                local PC_REPO_PKG=$(mktemp)
+                wget -O "${PC_REPO_PKG}" "${PC_REPO}"
+                sudo -n dpkg -i ${PC_REPO_PKG}
+                sudo -n apt-get -qq update
+                unlink ${PC_REPO_PKG}
+            fi
         else
             ctx logger warning 'Puppet: missing repository package'
         fi
 
         PC_PACKAGE=$(ctx_node_properties 'puppet_config.package')
         if [ "x${PC_PACKAGE}" != 'x' ]; then
-            sudo yum -y -q install "${PC_PACKAGE}"
+            if [ -n "${IS_YUM}" ]; then
+                sudo -n yum -y -q install "${PC_PACKAGE}"
+            elif [ -n "${IS_APT}" ]; then 
+                sudo -n apt-get -y install "${PC_PACKAGE}" >/dev/null
+            fi
         else
             ctx logger error 'Puppet: missing Puppet package name'
         fi
@@ -51,7 +70,7 @@ function install_pc1_agent() {
 
     if ! [ -x /opt/puppetlabs/puppet/bin/r10k ]; then
         ctx logger info 'Puppet: installing r10k'
-        sudo /opt/puppetlabs/puppet/bin/gem install --quiet r10k
+        sudo -n /opt/puppetlabs/puppet/bin/gem install --quiet r10k
         ctx logger info 'Puppet: installing r10k ... done'
     fi
 }
