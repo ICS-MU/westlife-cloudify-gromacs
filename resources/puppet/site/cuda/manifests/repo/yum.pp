@@ -1,6 +1,6 @@
-class cuda::repo::rhel {
-  yum::gpgkey { $::cuda::repo_gpgkey:
-    source => $::cuda::repo_gpgkey_source,
+class cuda::repo::yum {
+  yum::gpgkey { $::cuda::repo_gpgkey_file:
+    content => $::cuda::repo_gpgkey_content,
   }
 
   yumrepo { 'cuda':
@@ -8,7 +8,7 @@ class cuda::repo::rhel {
     descr    => 'cuda',
     baseurl  => $::cuda::repo_baseurl,
     gpgcheck => $::cuda::repo_gpgcheck,
-    gpgkey   => "file:///${::cuda::repo_gpgkey}",
+    gpgkey   => "file:///${::cuda::repo_gpgkey_file}",
     require  => Yum::Gpgkey[$::cuda::repo_gpgkey],
   }
 }
