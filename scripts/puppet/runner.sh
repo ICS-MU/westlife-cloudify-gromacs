@@ -25,13 +25,30 @@ ctx_node_properties() {
     echo "${PROP}"
 }
 
+# install python
+function install_python() {
+    if ! python --version &>/dev/null; then
+        if [ -n "${IS_YUM}" ]; then
+            sudo -n yum -yq install python
+        elif [ -n "${IS_APT}" ]; then
+            for i in {1..10}; do
+                sudo -n apt-get -y install python >/dev/null && break
+                sleep 6
+            done
+        fi
+    fi
+}
+
 # install jq
 function install_jq() {
     if ! jq --version &>/dev/null; then
         if [ -n "${IS_YUM}" ]; then
             sudo -n yum -yq install jq
         elif [ -n "${IS_APT}" ]; then
-            sudo -n apt-get -y install jq >/dev/null
+            for i in {1..10}; do
+                sudo -n apt-get -y install jq >/dev/null && break
+                sleep 6
+            done
         fi
     fi
 }
@@ -47,8 +64,12 @@ function install_pc1_agent() {
             elif [ -n "${IS_APT}" ]; then
                 local PC_REPO_PKG=$(mktemp)
                 wget -O "${PC_REPO_PKG}" "${PC_REPO}"
-                sudo -n dpkg -i ${PC_REPO_PKG}
-                sudo -n apt-get -qq update
+                for i in {1..10}; do
+                    sleep 6
+                    sudo -n dpkg -i ${PC_REPO_PKG} || continue
+                    sudo -n apt-get -qq update || continue
+                    break
+                done
                 unlink ${PC_REPO_PKG}
             fi
         else
@@ -60,7 +81,10 @@ function install_pc1_agent() {
             if [ -n "${IS_YUM}" ]; then
                 sudo -n yum -y -q install "${PC_PACKAGE}"
             elif [ -n "${IS_APT}" ]; then 
-                sudo -n apt-get -y install "${PC_PACKAGE}" >/dev/null
+                for i in {1..10}; do
+                    sudo -n apt-get -y install "${PC_PACKAGE}" >/dev/null
+                    sleep 6
+                done
             fi
         else
             ctx logger error 'Puppet: missing Puppet package name'
@@ -147,6 +171,7 @@ function puppet_facts() {
 CTX_SIDE="${relationship_side:-$1}"
 
 # install Puppet on very first run
+install_python
 install_jq
 install_pc1_agent
 
