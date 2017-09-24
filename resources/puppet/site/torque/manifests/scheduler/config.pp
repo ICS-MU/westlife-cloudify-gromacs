@@ -1,2 +1,0 @@
-class torque::scheduler::config {
-}

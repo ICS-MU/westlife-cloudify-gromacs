@@ -2,12 +2,12 @@ define torque::qmgr::object (
   $ensure,
   $object,
   $object_name,
-  $server_name = $::torque::client::server_name
+  $server_name = $torque::client::server_name
 ) {
   Exec {
-    path        => '/bin:/usr/bin',
+    path        => '/bin:/usr/bin:/usr/local/bin',
     environment => 'KRB5CCNAME=/dev/null',
-    require     => Class['::torque::client']
+    require     => Class['torque::client']
   }
 
   $_object_cpd = "${object} ${object_name}"

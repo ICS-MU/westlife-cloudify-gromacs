@@ -48,9 +48,46 @@ Puppet::Type.newtype(:torque_node) do
     end
   end
 
+  newproperty(:num_node_boards) do
+    desc <<-EOT
+      NUMA nodes count.
+    EOT
+
+    validate do |value|
+      unless Integer(value) >= 0
+        raise ArgumentError, "Unsupported number of NUMA nodes: #{value}"
+      end
+    end
+
+    munge do |value|
+      Integer(value) 
+    end
+  end
+
+  newproperty(:numa_board_str) do
+    desc <<-EOT
+      Non-uniform CPU distribution string.
+    EOT
+
+    validate do |value|
+      String(value).split(",").each do |v|
+        unless Integer(v) > 0
+          raise ArgumentError, "Unsupported number of NUMA node processors: #{v}"
+        end
+      end
+    end
+
+    munge do |value|
+      String(value)
+    end
+  end
+
   newproperty(:note, :required_features => :node_notes) do
     desc "Node note"
-    #TODO: note to neustale premazava, kdyz je zmena i jinde
+
+    munge do |value|
+      String(value) 
+    end
   end
 
   newproperty(:ntype) do
@@ -59,76 +96,22 @@ Puppet::Type.newtype(:torque_node) do
     EOT
 
     defaultto 'cluster'
+
     newvalues('cluster','cloud','virtual','time-shared')
   end
 
   newproperty(:properties, :parent => Puppet::Property::List, :array_matching => :all) do
-    defaultto []
     desc "Node properties"
+
+    defaultto []
+
+    munge do |value|
+      [value].flatten.map { |v| v.split(" ") }.flatten
+    end
 
     def membership
       :membership
     end
-  end
-
-  newproperty(:machine_spec) do
-    desc <<-EOT
-      SPECfp2006 base rate of _single CPU core_.
-    EOT
-
-    defaultto 10.0000
-
-    validate do |value|
-      unless Float(value)>0
-        raise ArgumentError, "Invalid machine_spec"
-      end
-    end
-
-    munge do |value|
-      sprintf('%.4f', value)
-    end
-  end
-
-  newproperty(:priority) do
-    desc <<-EOT
-      Node priority
-    EOT
-
-    defaultto 100
-
-    validate do |value|
-      if Float(value)<1
-        raise ArgumentError, "Invalid priority"
-      end
-    end
-
-    munge do |value|
-      sprintf('%.0f', value)
-    end
-  end
-
-  newproperty(:room) do
-    desc <<-EOT
-      Node server room
-    EOT
-  end
-
-  newproperty(:city) do
-    desc <<-EOT
-      Node city
-    EOT
-  end
-
-  newproperty(:infiniband) do
-    desc <<-EOT
-      Node Infiniband segment
-    EOT
-  end
-
-  newproperty(:home) do
-    desc <<-EOT
-      Node primary home
-    EOT
   end
 
   newproperty(:target, :required_features => :target_file) do
@@ -162,29 +145,4 @@ Puppet::Type.newtype(:torque_node) do
     #newvalues(:inclusive, :minimum)
     #defaultto :minimum
   end
-
-
-  #####
-
-#?  # The 'query' method returns a hash of info if the package
-#?  # exists and returns nil if it does not.
-#?  def exists?
-#?    @provider.get(:ensure) != :absent
-#?  end
-
-#   validate do |value|
-#     validate_fqdn(value)
-#   end 
-
-  private
-
-#  def validate_fqdn(value)
-#    # Taken from Puppet's host.rb
-#    # LAK:NOTE See http://snurl.com/21zf8  [groups_google_com]
-#    x = value.split('.').each do |hostpart|
-#      unless hostpart =~ /^([\d\w]+|[\d\w][\d\w\-]+[\d\w])$/
-#        raise Puppet::Error, "Invalid host name"
-#      end 
-#    end 
-#  end
 end

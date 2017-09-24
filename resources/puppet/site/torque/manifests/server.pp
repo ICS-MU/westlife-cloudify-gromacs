@@ -1,24 +1,21 @@
 class torque::server (
-  $packages      = $torque::params::server_packages,
-  $serverdb_file = $torque::params::serverdb_file,
-  $nodes         = $torque::params::nodes,
-  $purge_nodes   = $torque::params::server_purge_nodes,
-  $service       = $torque::params::server_service
+  Array   $packages      = $torque::params::server_packages,
+  String  $inst_package  = $torque::params::server_inst_package,
+  String  $serverdb_file = $torque::params::serverdb_file,
+  Hash    $nodes         = $torque::params::nodes,
+  Boolean $purge_nodes   = $torque::params::server_purge_nodes,
+  Array   $services      = $torque::params::server_services,
+  String  $server_name   = $torque::params::server_name
 ) inherits torque::params {
 
-  validate_array($packages)
-  validate_string($service)
-  validate_absolute_path($serverdb_file)
-  validate_hash($nodes)
+  require torque::client
+  contain torque::server::install
+  contain torque::server::config
+  contain torque::server::service
+  contain torque::server::live_config
 
-  require ::torque::client
-  contain ::torque::server::install
-  contain ::torque::server::config
-  contain ::torque::server::service
-  contain ::torque::server::live_config
-
-  Class['::torque::server::install']
-    -> Class['::torque::server::config']
-    ~> Class['::torque::server::service']
-    -> Class['::torque::server::live_config']
+  Class['torque::server::install']
+    -> Class['torque::server::config']
+    ~> Class['torque::server::service']
+    -> Class['torque::server::live_config']
 }

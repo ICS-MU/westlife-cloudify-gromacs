@@ -1,25 +1,36 @@
-include ::torque::scheduler
-include ::torque::server
-include ::torque::mom
+#include ::torque::scheduler
+#include torque::server
+#include torque::mom
 
-@@::torque::mom::node { 'localhost':
-  ensure       => present,
-  server_name  => 'localhost',
-  np           => '5',
-  ntype        => 'cluster',
-  properties   => '',
-  membership   => inclusive,
-  provider     => 'parsed',
+class { 'torque::server':
+  server_name => $::fqdn,
 }
 
-@@::torque::mom::node { $::fqdn:
-  ensure       => present,
-  server_name  => 'localhost',
-  np           => '5',
-  ntype        => 'cluster',
-  properties   => 'num_node_boards=1 kokot',
-  membership   => inclusive,
-  provider     => 'parsed',
+class { 'torque::mom':
+  server_name => $::fqdn,
+}
+
+#@@torque::mom::node { 'localhost':
+#  ensure       => present,
+#  server_name  => 'localhost',
+#  np           => '5',
+#  ntype        => 'cluster',
+#  properties   => '',
+#  membership   => inclusive,
+#  provider     => 'parsed',
+#}
+
+@@torque::mom::node { $::fqdn:
+  ensure          => present,
+  server_name     => $::fqdn,
+  np              => 4,
+#  num_node_boards => 0,
+#  numa_board_str  => '1,2,0',
+  ntype           => 'cluster',
+  properties      => ['kokot', 'kokot4'],
+#  properties      => 'kokot kokot4',
+  membership      => inclusive,
+  provider        => 'parsed',
 }
 
 # server
@@ -37,74 +48,74 @@ include ::torque::mom
 #  value  => "root@localhost",
 #}
 
-::torque::qmgr::attribute { 'server scheduling':
+torque::qmgr::attribute { 'server scheduling':
   object => 'server',
   key    => 'scheduling',
   value  => 'true',
 }
 
-::torque::qmgr::attribute { 'server keep_completed':
+torque::qmgr::attribute { 'server keep_completed':
   object => 'server',
   key    => 'keep_completed',
   value  => '300',
 }
 
-::torque::qmgr::attribute { 'server mom_job_sync':
+torque::qmgr::attribute { 'server mom_job_sync':
   object => 'server',
   key    => 'mom_job_sync',
   value  => 'true',
 }
 
 # queue batch
-::torque::qmgr::object { 'queue batch':
+torque::qmgr::object { 'queue batch':
   ensure      => 'present',
   object      => 'queue',
   object_name => 'batch',
 }
 
-::torque::qmgr::attribute { 'queue batch queue_type':
+torque::qmgr::attribute { 'queue batch queue_type':
   object      => 'queue',
   object_name => 'batch',
   key         => 'queue_type',
   value       => 'execution',
-  require     => ::Torque::Qmgr::Object['queue batch'],
+  require     => Torque::Qmgr::Object['queue batch'],
 }
 
-::torque::qmgr::attribute { 'queue batch started':
+torque::qmgr::attribute { 'queue batch started':
   object      => 'queue',
   object_name => 'batch',
   key         => 'started',
   value       => 'true',
-  require     => ::Torque::Qmgr::Object['queue batch'],
+  require     => Torque::Qmgr::Object['queue batch'],
 }
 
-::torque::qmgr::attribute { 'queue batch enabled':
+torque::qmgr::attribute { 'queue batch enabled':
   object      => 'queue',
   object_name => 'batch',
   key         => 'enabled',
   value       => 'true',
-  require     => ::Torque::Qmgr::Object['queue batch'],
+  require     => Torque::Qmgr::Object['queue batch'],
 }
 
-::torque::qmgr::attribute { 'queue batch resources_default.walltime':
+torque::qmgr::attribute { 'queue batch resources_default.walltime':
   object      => 'queue',
   object_name => 'batch',
   key         => 'resources_default.walltime',
   value       => '01:00:00',
-  require     => ::Torque::Qmgr::Object['queue batch'],
+  require     => Torque::Qmgr::Object['queue batch'],
 }
 
-::torque::qmgr::attribute { 'queue batch resources_default.nodes':
+torque::qmgr::attribute { 'queue batch resources_default.nodes':
   object      => 'queue',
   object_name => 'batch',
   key         => 'resources_default.nodes',
   value       => '1',
-  require     => ::Torque::Qmgr::Object['queue batch'],
+  require     => Torque::Qmgr::Object['queue batch'],
 }
 
-::torque::qmgr::attribute { 'server default_queue':
+torque::qmgr::attribute { 'server default_queue':
   object   => 'server',
   key      => 'default_queue',
   value    => 'batch',
-  require  => ::Torque::Qmgr::Object['queue batch'],
+  require  => Torque::Qmgr::Object['queue batch'],
 }

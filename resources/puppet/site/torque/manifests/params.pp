@@ -6,20 +6,24 @@ class torque::params {
 
   case $::operatingsystem {
     'redhat','centos','scientific','oraclelinux': {
-      $mom_packages = ['torque-mom']
+      $mom_packages = ['hwloc-libs']
+      $mom_inst_package = 'puppet:///modules/torque/torque-package-mom-linux-x86_64.sh'
       $mom_service = 'pbs_mom'
+
       $munge_packages = ['munge']
       $munge_key_file = '/etc/munge/munge.key'
       $munge_key = 'kokotKOKOTkokotKOKOTkokotKOKOTkokotKOKOT' #TODO
       $munge_service = 'munge'
-      $client_packages = ['torque-client']
+
+      $client_packages = ['hwloc-libs']
+      $client_inst_package = 'puppet:///modules/torque/torque-package-clients-linux-x86_64.sh'
       $client_service = 'trqauthd'
-      $server_packages = ['torque-server']
-      $server_name_file = '/etc/torque/server_name'
-      $serverdb_file = '/var/lib/torque/server_priv/serverdb'
-      $server_service  = 'pbs_server'
-      $scheduler_packages = ['torque-scheduler']
-      $scheduler_service = 'pbs_sched'
+
+      $server_packages = ['hwloc-libs']
+      $server_inst_package = 'puppet:///modules/torque/torque-package-server-linux-x86_64.sh'
+      $server_name_file = '/var/spool/torque/server_name'
+      $serverdb_file = '/var/spool/torque/server_priv/serverdb'
+      $server_services  = ['pbs_sched', 'pbs_server']
     }
 
     default: {

@@ -1,0 +1,3 @@
+./configure --with-default-server=localhost --enable-numa-support
+make -j8
+make packages

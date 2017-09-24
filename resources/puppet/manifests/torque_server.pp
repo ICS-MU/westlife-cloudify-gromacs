@@ -3,8 +3,7 @@ include ::westlife::nofirewall
 if ($::cloudify_ctx_type == 'node-instance') or
    ($::cloudify_ctx_operation_name in ['establish', 'unlink'])
 {
-  include ::torque::scheduler
-  include ::torque::server
+  include torque::server
 
   $facts.each |String $key, $value| {
     if $key =~ /^torque_node_(.*)$/ {
@@ -18,57 +17,57 @@ if ($::cloudify_ctx_type == 'node-instance') or
       } else {
         warning("Torque node: ${value['name']} ${value['procs']}")
 
-        ::torque::mom::node { $value['name']:
-          ensure      => 'present',
-          np          => $value['procs'],
-          ntype       => 'cluster',
-          properties  => 'num_node_boards=1',
-          server_name => 'localhost',
-          membership  => inclusive,
-          provider    => 'parsed',
+        torque::mom::node { $value['name']:
+          ensure          => 'present',
+          np              => $value['procs'],
+          ntype           => 'cluster',
+          num_node_boards => 1,
+          server_name     => 'localhost',
+          membership      => inclusive,
+          provider        => 'parsed',
         }
       }
     }
   }
 
-  ::torque::qmgr::attribute { 'server scheduler_iteration':
+  torque::qmgr::attribute { 'server scheduler_iteration':
     object => 'server',
     key    => 'scheduler_iteration',
     value  => '30',
   }
 
-  ::torque::qmgr::attribute { 'server scheduling':
+  torque::qmgr::attribute { 'server scheduling':
     object => 'server',
     key    => 'scheduling',
     value  => 'true',
   }
   
-  ::torque::qmgr::attribute { 'server keep_completed':
+  torque::qmgr::attribute { 'server keep_completed':
     object => 'server',
     key    => 'keep_completed',
     value  => '86400',
   }
   
-  ::torque::qmgr::attribute { 'server mom_job_sync':
+  torque::qmgr::attribute { 'server mom_job_sync':
     object => 'server',
     key    => 'mom_job_sync',
     value  => 'true',
   }
 
-  ::torque::qmgr::attribute { 'server node_check_rate':
+  torque::qmgr::attribute { 'server node_check_rate':
     object => 'server',
     key    => 'node_check_rate',
-    value  => '30',
+    value  => '180',
   }
   
   # queue batch
-  ::torque::qmgr::object { 'queue batch':
+  torque::qmgr::object { 'queue batch':
     ensure      => 'present',
     object      => 'queue',
     object_name => 'batch',
   }
   
-  ::torque::qmgr::attribute { 'queue batch queue_type':
+  torque::qmgr::attribute { 'queue batch queue_type':
     object      => 'queue',
     object_name => 'batch',
     key         => 'queue_type',
@@ -76,7 +75,7 @@ if ($::cloudify_ctx_type == 'node-instance') or
     require     => ::Torque::Qmgr::Object['queue batch'],
   }
   
-  ::torque::qmgr::attribute { 'queue batch started':
+  torque::qmgr::attribute { 'queue batch started':
     object      => 'queue',
     object_name => 'batch',
     key         => 'started',
@@ -84,7 +83,7 @@ if ($::cloudify_ctx_type == 'node-instance') or
     require     => ::Torque::Qmgr::Object['queue batch'],
   }
   
-  ::torque::qmgr::attribute { 'queue batch enabled':
+  torque::qmgr::attribute { 'queue batch enabled':
     object      => 'queue',
     object_name => 'batch',
     key         => 'enabled',
@@ -92,7 +91,7 @@ if ($::cloudify_ctx_type == 'node-instance') or
     require     => ::Torque::Qmgr::Object['queue batch'],
   }
   
-  ::torque::qmgr::attribute { 'queue batch resources_default.walltime':
+  torque::qmgr::attribute { 'queue batch resources_default.walltime':
     object      => 'queue',
     object_name => 'batch',
     key         => 'resources_default.walltime',
@@ -100,7 +99,7 @@ if ($::cloudify_ctx_type == 'node-instance') or
     require     => ::Torque::Qmgr::Object['queue batch'],
   }
   
-  ::torque::qmgr::attribute { 'queue batch resources_default.nodes':
+  torque::qmgr::attribute { 'queue batch resources_default.nodes':
     object      => 'queue',
     object_name => 'batch',
     key         => 'resources_default.nodes',
@@ -108,7 +107,7 @@ if ($::cloudify_ctx_type == 'node-instance') or
     require     => ::Torque::Qmgr::Object['queue batch'],
   }
   
-  ::torque::qmgr::attribute { 'server default_queue':
+  torque::qmgr::attribute { 'server default_queue':
     object   => 'server',
     key      => 'default_queue',
     value    => 'batch',

@@ -6,25 +6,17 @@ Puppet::Type.type(:torque_node).provide(
   :parsed,
   :parent         => Puppet::Provider::ParsedFile,
   :filetype       => :flat,
-  :default_target => '/var/lib/torque/server_priv/nodes'
-  #:default_target => '/var/spool/torque/server_priv/nodes'
-  #:default_target => '/tmp/nodes'
+  :default_target => '/var/spool/torque/server_priv/nodes'
 ) do
   has_feature :target_file
-
-  #confine :exists => nodes
 
   text_line :comment, :match => /^#/
   text_line :blank,   :match => /^\s*$/
 
   NODE_MAP = {
-    'np'                         => 'np',
-#    'node_priority'              => 'priority',
-#    'machine_spec'               => 'machine_spec',
-#    'resources_total.room'       => 'room', # RT #84539
-#    'resources_total.city'       => 'city',
-#    'resources_total.infiniband' => 'infiniband',
-#    'resources_total.home'       => 'home'
+    'np'              => 'np',
+    'num_node_boards' => 'num_node_boards',
+    'numa_board_str'  => 'numa_board_str',
   }
 
   NODE_TYPE = {
@@ -94,7 +86,7 @@ Puppet::Type.type(:torque_node).provide(
 
       str = "#{hash[:name]}#{NODE_TYPE.invert[hash[:ntype].to_s]}"
 
-      NODE_MAP.each_pair { |k_o,k_p|
+      NODE_MAP.each_pair { |k_o, k_p|
         if hash.ok?(k_p.intern)
           str += " #{k_o}=#{hash[k_p.intern]}"
         end

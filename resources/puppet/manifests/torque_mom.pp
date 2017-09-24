@@ -23,8 +23,8 @@ if ($::cloudify_ctx_type == 'node-instance') {
     }
 
     ctx { "torque_node_${_id}.procs":
-      value => '@1', # we want the node exclusively
-      #value => "@${facts['processors']['count']}",
+      #value => '@1', # we want the node exclusively
+      value => "@${facts['processors']['count']}",
       side  => 'target',
     }
   }
