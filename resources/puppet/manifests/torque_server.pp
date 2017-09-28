@@ -21,7 +21,7 @@ if ($::cloudify_ctx_type == 'node-instance') or
           ensure          => 'present',
           np              => $value['procs'],
           ntype           => 'cluster',
-          num_node_boards => 1,
+#          num_node_boards => 1,
           server_name     => 'localhost',
           membership      => inclusive,
           provider        => 'parsed',

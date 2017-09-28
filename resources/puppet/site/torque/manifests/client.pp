@@ -6,7 +6,6 @@ class torque::client (
   String $service          = $torque::params::client_service
 ) inherits torque::params {
 
-#  require torque::munge
   contain torque::client::install
   contain torque::client::config
   contain torque::client::service

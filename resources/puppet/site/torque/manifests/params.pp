@@ -6,20 +6,15 @@ class torque::params {
 
   case $::operatingsystem {
     'redhat','centos','scientific','oraclelinux': {
-      $mom_packages = ['hwloc-libs']
+      $mom_packages = []
       $mom_inst_package = 'puppet:///modules/torque/torque-package-mom-linux-x86_64.sh'
       $mom_service = 'pbs_mom'
 
-      $munge_packages = ['munge']
-      $munge_key_file = '/etc/munge/munge.key'
-      $munge_key = 'kokotKOKOTkokotKOKOTkokotKOKOTkokotKOKOT' #TODO
-      $munge_service = 'munge'
-
-      $client_packages = ['hwloc-libs']
+      $client_packages = []
       $client_inst_package = 'puppet:///modules/torque/torque-package-clients-linux-x86_64.sh'
       $client_service = 'trqauthd'
 
-      $server_packages = ['hwloc-libs']
+      $server_packages = []
       $server_inst_package = 'puppet:///modules/torque/torque-package-server-linux-x86_64.sh'
       $server_name_file = '/var/spool/torque/server_name'
       $serverdb_file = '/var/spool/torque/server_priv/serverdb'
