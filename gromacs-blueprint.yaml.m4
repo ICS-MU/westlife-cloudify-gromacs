@@ -157,7 +157,7 @@ node_templates:
         hiera:
           gromacs::portal::enable_ssl: { get_input: gromacs_portal_enable_ssl }
           gromacs::portal::admin_email: { get_input: gromacs_portal_admin_email }
-          gromacs::portal::gromacs_cpu_nr: 1
+          gromacs::portal::gromacs_cpu_nr: -1    # -1=node exclusive
           gromacs::user::public_key: { get_input: gromacs_user_public_key }
           gromacs::user::private_key_b64: { get_input: gromacs_user_private_key_b64 }
           westlife::volume::device: /dev/vdc
@@ -189,7 +189,7 @@ node_templates:
   workerNode:
     type: _NODE_SERVER_
     properties:
-      name: 'Worker node'
+      name: 'Gromacs worker node'
       resource_config:
         os_tpl: { get_input: worker_os_tpl }
         resource_tpl: { get_input: worker_resource_tpl }
