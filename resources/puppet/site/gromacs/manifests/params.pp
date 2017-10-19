@@ -23,6 +23,13 @@ class gromacs::params {
   $portal_admin_email = 'root@localhost'
   $portal_gromacs_cpu_nr = 8
 
+  $portal_dyndns_enabled = false
+  $portal_dyndns_hostname = undef
+  $portal_dyndns_server = undef
+  $portal_dyndns_login = undef
+  $portal_dyndns_password = undef
+  $portal_dyndns_ssl = 'yes'
+
   case $::operatingsystem {
     'redhat','centos','scientific','oraclelinux': { #TODO
       case $::operatingsystemmajrelease {

@@ -95,6 +95,14 @@ gromacs_portal_enable_ssl: False #if True, setup valid admin e-mail below
 # your valid contact e-mail address
 gromacs_portal_admin_email: 'root@localhost'
 
+# DynDNS: connection parameters for frontend registration via dyndns API
+gromacs_portal_dyndns_enabled: False
+gromacs_portal_dyndns_hostname: ''
+gromacs_portal_dyndns_server: ''
+gromacs_portal_dyndns_login: ''
+gromacs_portal_dyndns_password: ''
+gromacs_portal_dyndns_ssl: 'yes'            # 'yes' or 'no'
+
 # SSH public key of the unprivileged gromacs user used for the computation
 gromacs_user_public_key: 'include(`resources/ssh_gromacs/id_rsa.pub')'
 
