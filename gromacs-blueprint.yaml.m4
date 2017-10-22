@@ -82,7 +82,9 @@ inputs:
   # Application parameters
   cuda_release:
     type: string
-  gromacs_portal_enable_ssl:
+  gromacs_portal_servername:
+    type: string
+  gromacs_portal_ssl_enabled:
     type: boolean
   gromacs_portal_admin_email:
     type: string
@@ -97,6 +99,14 @@ inputs:
   gromacs_portal_dyndns_password:
     type: string
   gromacs_portal_dyndns_ssl:
+    type: string
+  gromacs_portal_auth_enabled:
+    type: boolean
+  gromacs_portal_auth_service_key_b64:
+    type: string
+  gromacs_portal_auth_service_cert_b64:
+    type: string
+  gromacs_portal_auth_service_meta_b64:
     type: string
   gromacs_user_public_key:
     type: string
@@ -167,9 +177,14 @@ node_templates:
         manifests:
           start: manifests/gromacs_portal.pp
         hiera:
-          gromacs::portal::enable_ssl: { get_input: gromacs_portal_enable_ssl }
+          gromacs::portal::servername: { get_input: gromacs_portal_servername }
+          gromacs::portal::ssl_enabled: { get_input: gromacs_portal_ssl_enabled }
           gromacs::portal::admin_email: { get_input: gromacs_portal_admin_email }
-          gromacs::portal::gromacs_cpu_nr: -1    # -1=node exclusive
+          gromacs::portal::gromacs_cpu_nr: 2    # -1=node exclusive
+          gromacs::portal::auth_enabled: { get_input: gromacs_portal_auth_enabled }
+          gromacs::portal::auth_service_key_b64: { get_input: gromacs_portal_auth_service_key_b64 }
+          gromacs::portal::auth_service_cert_b64: { get_input: gromacs_portal_auth_service_cert_b64 }
+          gromacs::portal::auth_service_meta_b64: { get_input: gromacs_portal_auth_service_meta_b64 }
           gromacs::portal::dyndns_enabled: { get_input: gromacs_portal_dyndns_enabled }
           gromacs::portal::dyndns_hostname: { get_input: gromacs_portal_dyndns_hostname }
           gromacs::portal::dyndns_server: { get_input: gromacs_portal_dyndns_server }

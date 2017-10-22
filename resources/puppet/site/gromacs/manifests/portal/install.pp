@@ -8,16 +8,99 @@ class gromacs::portal::install {
   }
 
   contain ::apache::mod::php
+  contain ::apache::mod::auth_mellon
 
-  $_custom_fragment = "
-  <Directory '${::gromacs::portal::code_dir}/cgi'>
+  $_custom_fragment = inline_template('
+  <Directory "<%= scope["gromacs::portal::code_dir"] %>/cgi">
     Options +ExecCGI
     AddHandler cgi-script .cgi
   </Directory>
-"
+
+<% if scope["gromacs::portal::auth_enabled"] == true -%>
+  <Location "/" >
+    AuthType Mellon
+    MellonEnable "auth"
+    Require valid-user
+
+    MellonSPPrivateKeyFile /etc/httpd/mellon/service.key
+    MellonSPCertFile       /etc/httpd/mellon/service.cert
+    MellonSPMetadataFile   /etc/httpd/mellon/service.xml
+
+    # https://auth.west-life.eu/proxy/saml2/idp/metadata.php
+    MellonIdPMetadataFile  /etc/httpd/mellon/idp-metadata.xml
+
+    # Mapping of attribute names to something readable
+    MellonSetEnv "name" "urn:oid:2.16.840.1.113730.3.1.241"
+    MellonSetEnv "mail" "urn:oid:0.9.2342.19200300.100.1.3"
+    MellonSetEnv "eppn" "urn:oid:1.3.6.1.4.1.5923.1.1.1.6"
+    MellonSetEnv "entitlement" "urn:oid:1.3.6.1.4.1.5923.1.1.1.7"
+    MellonSetEnv "eduPersonUniqueId" "urn:oid:1.3.6.1.4.1.5923.1.1.1.13"
+  </Location>
+<% end -%>
+')
+
+  if $gromacs::portal::auth_enabled {
+    file { '/etc/httpd/mellon':
+      ensure  => directory,
+      mode    => '0750',
+      owner   => 'apache',
+      group   => 'apache',
+      require => Package['httpd'],
+    }
+
+    file { '/etc/httpd/mellon/idp-metadata.xml':
+      ensure  => file,
+      mode    => '0640',
+      owner   => 'apache',
+      group   => 'apache',
+      source  => 'puppet:///modules/gromacs/idp-metadata.xml',
+      notify  => Class['apache::service'],
+    } 
+
+    # user provided service keys/certs
+    if length($gromacs::portal::auth_service_key_b64) > 0 {
+      file { '/etc/httpd/mellon/service.key':
+        ensure  => file,
+        mode    => '0640',
+        owner   => 'apache',
+        group   => 'apache',
+        content => base64('decode', $gromacs::portal::auth_service_key_b64),
+        notify  => Class['apache::service'],
+      } 
+    } else {
+      fail('Missing $gromacs::portal::auth_service_key_b64')
+    }
+
+    if length($gromacs::portal::auth_service_cert_b64) > 0 {
+      file { '/etc/httpd/mellon/service.cert':
+        ensure  => file,
+        mode    => '0640',
+        owner   => 'apache',
+        group   => 'apache',
+        content => base64('decode', $gromacs::portal::auth_service_cert_b64),
+        notify  => Class['apache::service'],
+      } 
+    } else {
+      fail('Missing $gromacs::portal::auth_service_cert_b64')
+    }
+
+    if length($gromacs::portal::auth_service_meta_b64) > 0 {
+      file { '/etc/httpd/mellon/service.xml':
+        ensure  => file,
+        mode    => '0640',
+        owner   => 'apache',
+        group   => 'apache',
+        content => base64('decode', $gromacs::portal::auth_service_meta_b64),
+        notify  => Class['apache::service'],
+      } 
+    } else {
+      fail('Missing $gromacs::portal::auth_service_meta_b64')
+    }
+  }
 
   ::apache::vhost { 'http':
     ensure          => present,
+    servername      => $gromacs::portal::servername,
     port            => 80,
     docroot         => $::gromacs::portal::code_dir,
     manage_docroot  => true,
@@ -27,29 +110,33 @@ class gromacs::portal::install {
   }
 
   # SSL via Let's Encrypt
-  if $::gromacs::portal::enable_ssl {
+  if $::gromacs::portal::ssl_enabled {
     class { '::letsencrypt':
-      email => $::gromacs::portal::admin_email,
+      email               => $::gromacs::portal::admin_email,
+      unsafe_registration => true,
     }
 
-    letsencrypt::certonly { $::fqdn:
+    letsencrypt::certonly { $gromacs::portal::servername:
       plugin               => 'standalone',
       manage_cron          => true,
-      cron_success_command => '/bin/systemctl reload httpd.service',
+      cron_before_command  => '/bin/systemctl stop httpd.service',
+      cron_success_command => '/bin/systemctl restart httpd.service',
+      suppress_cron_output => true,
       before               => ::Apache::Vhost['https'],
     }
 
     ::apache::vhost { 'https':
       ensure          => present,
+      servername      => $gromacs::portal::servername,
       port            => 443,
       docroot         => $::gromacs::portal::code_dir,
       manage_docroot  => false,
       docroot_owner   => 'apache',
       docroot_group   => 'apache',
       ssl             => true,
-      ssl_cert        => "/etc/letsencrypt/live/${::fqdn}/cert.pem",
-      ssl_chain       => "/etc/letsencrypt/live/${::fqdn}/chain.pem",
-      ssl_key         => "/etc/letsencrypt/live/${::fqdn}/privkey.pem",
+      ssl_cert        => "/etc/letsencrypt/live/${gromacs::portal::servername}/cert.pem",
+      ssl_chain       => "/etc/letsencrypt/live/${gromacs::portal::servername}/chain.pem",
+      ssl_key         => "/etc/letsencrypt/live/${gromacs::portal::servername}/privkey.pem",
       custom_fragment => $_custom_fragment,
     }
 

@@ -17,12 +17,18 @@ class gromacs::params {
 
   $portal_code_dir = '/var/www/gromacs'
   $portal_data_dir = '/data/gromacs'
-  $portal_enable_ssl = true
   $portal_server_url = undef  #depends on $portal_enable_ssl
   $portal_server_cgi = undef
   $portal_admin_email = 'root@localhost'
   $portal_gromacs_cpu_nr = 8
 
+  $portal_servername = $::fqdn
+  $portal_ssl_enabled = true
+
+  $portal_auth_enabled = false
+  $portal_auth_service_key_b64 = undef
+  $portal_auth_service_cert_b64 = undef
+  $portal_auth_service_meta_b64 = undef
   $portal_dyndns_enabled = false
   $portal_dyndns_hostname = undef
   $portal_dyndns_server = undef

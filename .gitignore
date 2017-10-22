@@ -7,6 +7,7 @@ resources/ssh*/
 resources/gromacs-portal/
 resources/puppet.tar.gz
 resources/puppet/site/gromacs/files/private/
+service.*
 
 # Generated blueprints
 cfy-gromacs-blueprint.yaml

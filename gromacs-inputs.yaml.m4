@@ -89,8 +89,11 @@ define(_WORKERS_MAX_,   3)dnl	# maximum workers with autoscaling
 # version of CUDA Toolkit deployed on GPU workers
 cuda_release: '7.0'
 
+# portal servername for redirects, SSL certificates, defaults to portal FQDN
+gromacs_portal_servername: NULL
+
 # enable https:// only access on the web portal secured by Let's Encrypt
-gromacs_portal_enable_ssl: False #if True, setup valid admin e-mail below
+gromacs_portal_ssl_enabled: False   # if True, setup valid admin e-mail below
 
 # your valid contact e-mail address
 gromacs_portal_admin_email: 'root@localhost'
@@ -102,6 +105,12 @@ gromacs_portal_dyndns_server: ''
 gromacs_portal_dyndns_login: ''
 gromacs_portal_dyndns_password: ''
 gromacs_portal_dyndns_ssl: 'yes'            # 'yes' or 'no'
+
+# user SAML authentication via mod_auth_mellon
+gromacs_portal_auth_enabled: False   # if True, SSL needs to be enabled
+gromacs_portal_auth_service_key_b64:  'esyscmd(base64 -w0 service.key)'
+gromacs_portal_auth_service_cert_b64: 'esyscmd(base64 -w0 service.cert)'
+gromacs_portal_auth_service_meta_b64: 'esyscmd(base64 -w0 service.xml)'
 
 # SSH public key of the unprivileged gromacs user used for the computation
 gromacs_user_public_key: 'include(`resources/ssh_gromacs/id_rsa.pub')'
