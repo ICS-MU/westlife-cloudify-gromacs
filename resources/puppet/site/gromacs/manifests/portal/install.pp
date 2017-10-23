@@ -142,8 +142,7 @@ class gromacs::portal::install {
 
     # redirect http->https
     ::Apache::Vhost['http'] {
-      redirect_status => 'permanent',
-      redirect_dest   => "${::gromacs::portal::_server_url}/"
+      redirect_dest => "${::gromacs::portal::_server_url}/"
     }
   }
 
