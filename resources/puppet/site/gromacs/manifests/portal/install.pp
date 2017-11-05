@@ -36,6 +36,11 @@ class gromacs::portal::install {
     MellonSetEnv "entitlement" "urn:oid:1.3.6.1.4.1.5923.1.1.1.7"
     MellonSetEnv "eduPersonUniqueId" "urn:oid:1.3.6.1.4.1.5923.1.1.1.13"
   </Location>
+
+  <LocationMatch "^/+results/+[0-9]+/+[^/]+\.(tpr|cpt)$">
+    MellonEnable "off"
+    Satisfy any
+  </LocationMatch>
 <% end -%>
 ')
 
@@ -49,13 +54,13 @@ class gromacs::portal::install {
     }
 
     file { '/etc/httpd/mellon/idp-metadata.xml':
-      ensure  => file,
-      mode    => '0640',
-      owner   => 'apache',
-      group   => 'apache',
-      source  => 'puppet:///modules/gromacs/idp-metadata.xml',
-      notify  => Class['apache::service'],
-    } 
+      ensure => file,
+      mode   => '0640',
+      owner  => 'apache',
+      group  => 'apache',
+      source => 'puppet:///modules/gromacs/idp-metadata.xml',
+      notify => Class['apache::service'],
+    }
 
     # user provided service keys/certs
     if length($gromacs::portal::auth_service_key_b64) > 0 {
@@ -66,7 +71,7 @@ class gromacs::portal::install {
         group   => 'apache',
         content => base64('decode', $gromacs::portal::auth_service_key_b64),
         notify  => Class['apache::service'],
-      } 
+      }
     } else {
       fail('Missing $gromacs::portal::auth_service_key_b64')
     }
@@ -79,7 +84,7 @@ class gromacs::portal::install {
         group   => 'apache',
         content => base64('decode', $gromacs::portal::auth_service_cert_b64),
         notify  => Class['apache::service'],
-      } 
+      }
     } else {
       fail('Missing $gromacs::portal::auth_service_cert_b64')
     }
@@ -92,7 +97,7 @@ class gromacs::portal::install {
         group   => 'apache',
         content => base64('decode', $gromacs::portal::auth_service_meta_b64),
         notify  => Class['apache::service'],
-      } 
+      }
     } else {
       fail('Missing $gromacs::portal::auth_service_meta_b64')
     }
