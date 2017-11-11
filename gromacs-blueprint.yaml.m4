@@ -193,6 +193,8 @@ node_templates:
           gromacs::portal::dyndns_ssl: { get_input: gromacs_portal_dyndns_ssl }
           gromacs::user::public_key: { get_input: gromacs_user_public_key }
           gromacs::user::private_key_b64: { get_input: gromacs_user_private_key_b64 }
+          westlife::postfix::root_recipient: { get_input: gromacs_portal_admin_email }
+          westlife::postfix::gromacs_recipient: { get_input: gromacs_portal_admin_email }
           westlife::volume::device: /dev/vdc
           westlife::volume::fstype: ext4
           westlife::volume::mountpoint: /data
