@@ -45,6 +45,22 @@ class gromacs::portal::config {
     value   => $::gromacs::portal::admin_email,
   }
 
+  # easy user options
+  ini_setting { 'gmx_serverconf.ini-INT_USER_EASY_STORETIME':
+    setting => 'INT_USER_EASY_STORETIME',
+    value   => $gromacs::portal::user_storetime,
+  }
+
+  ini_setting { 'gmx_serverconf.ini-INT_USER_EASY_MAXJOB':
+    setting => 'INT_USER_EASY_MAXJOB',
+    value   => $gromacs::portal::user_maxjob,
+  }
+
+  ini_setting { 'gmx_serverconf.ini-FLT_USER_EASY_SIMTIME':
+    setting => 'FLT_USER_EASY_SIMTIME',
+    value   => $gromacs::portal::user_simtime,
+  }
+
   # gromacs options
   ini_setting { 'gmx_serverconf.ini-INT_GROMACS_CPU_NR':
     section => 'gromacs_options',
