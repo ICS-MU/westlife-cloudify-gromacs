@@ -60,7 +60,7 @@ olin_scratch_size: 30
 worker_os_tpl: 'uuid_enmr_centos_7_cerit_sc_187'
 
 # sizing
-worker_resource_tpl: 'large'
+worker_resource_tpl: 'extra_large'
 
 # availability zone
 worker_availability_zone: 'uuid_fedcloud_cerit_sc_103'
@@ -97,6 +97,8 @@ gromacs_portal_ssl_enabled: False   # if True, setup valid admin e-mail below
 
 # your valid contact e-mail address
 gromacs_portal_admin_email: 'root@localhost'
+
+gromacs_portal_gromacs_cpu_nr: -1
 
 # DynDNS: connection parameters for frontend registration via dyndns API
 gromacs_portal_dyndns_enabled: False

@@ -51,7 +51,7 @@ class gromacs::params {
           }
 
           $packages = ['openmpi-devel', 'bc', 'wget', 'mailx']
-          $portal_packages = ['python2-crypto']
+          $portal_packages = ['python2-crypto','grace','dssp']
         }
 
         default: {

@@ -86,6 +86,8 @@ inputs:
     type: string
   gromacs_portal_ssl_enabled:
     type: boolean
+  gromacs_portal_gromacs_cpu_nr:
+    type: integer
   gromacs_portal_admin_email:
     type: string
   gromacs_portal_dyndns_enabled:
@@ -180,7 +182,7 @@ node_templates:
           gromacs::portal::servername: { get_input: gromacs_portal_servername }
           gromacs::portal::ssl_enabled: { get_input: gromacs_portal_ssl_enabled }
           gromacs::portal::admin_email: { get_input: gromacs_portal_admin_email }
-          gromacs::portal::gromacs_cpu_nr: 2    # -1=node exclusive
+          gromacs::portal::gromacs_cpu_nr: {get_input: gromacs_portal_gromacs_cpu_nr }    # -1=node exclusive
           gromacs::portal::auth_enabled: { get_input: gromacs_portal_auth_enabled }
           gromacs::portal::auth_service_key_b64: { get_input: gromacs_portal_auth_service_key_b64 }
           gromacs::portal::auth_service_cert_b64: { get_input: gromacs_portal_auth_service_cert_b64 }
