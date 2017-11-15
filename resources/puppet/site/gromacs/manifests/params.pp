@@ -21,6 +21,9 @@ class gromacs::params {
   $portal_server_cgi = undef
   $portal_admin_email = 'root@localhost'
   $portal_gromacs_cpu_nr = 8
+  $portal_user_storetime = 30
+  $portal_user_maxjob = 5
+  $portal_user_simtime = 10.0
 
   $portal_servername = $::fqdn
   $portal_ssl_enabled = true

@@ -90,6 +90,14 @@ inputs:
     type: integer
   gromacs_portal_admin_email:
     type: string
+  gromacs_portal_gromacs_cpu_nr:
+    type: integer
+  gromacs_portal_user_storetime:
+    type: integer
+  gromacs_portal_user_maxjob:
+    type: integer
+  gromacs_portal_user_simtime:
+    type: float
   gromacs_portal_dyndns_enabled:
     type: boolean
   gromacs_portal_dyndns_hostname:
@@ -182,7 +190,10 @@ node_templates:
           gromacs::portal::servername: { get_input: gromacs_portal_servername }
           gromacs::portal::ssl_enabled: { get_input: gromacs_portal_ssl_enabled }
           gromacs::portal::admin_email: { get_input: gromacs_portal_admin_email }
-          gromacs::portal::gromacs_cpu_nr: {get_input: gromacs_portal_gromacs_cpu_nr }    # -1=node exclusive
+          gromacs::portal::gromacs_cpu_nr: { get_input: gromacs_portal_gromacs_cpu_nr }
+          gromacs::portal::user_storetime: { get_input: gromacs_portal_user_storetime }
+          gromacs::portal::user_maxjob: { get_input: gromacs_portal_user_maxjob }
+          gromacs::portal::user_simtime: { get_input: gromacs_portal_user_simtime }
           gromacs::portal::auth_enabled: { get_input: gromacs_portal_auth_enabled }
           gromacs::portal::auth_service_key_b64: { get_input: gromacs_portal_auth_service_key_b64 }
           gromacs::portal::auth_service_cert_b64: { get_input: gromacs_portal_auth_service_cert_b64 }
@@ -195,6 +206,8 @@ node_templates:
           gromacs::portal::dyndns_ssl: { get_input: gromacs_portal_dyndns_ssl }
           gromacs::user::public_key: { get_input: gromacs_user_public_key }
           gromacs::user::private_key_b64: { get_input: gromacs_user_private_key_b64 }
+          westlife::postfix::root_recipient: { get_input: gromacs_portal_admin_email }
+          westlife::postfix::gromacs_recipient: { get_input: gromacs_portal_admin_email }
           westlife::volume::device: /dev/vdc
           westlife::volume::fstype: ext4
           westlife::volume::mountpoint: /data

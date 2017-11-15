@@ -98,7 +98,13 @@ gromacs_portal_ssl_enabled: False   # if True, setup valid admin e-mail below
 # your valid contact e-mail address
 gromacs_portal_admin_email: 'root@localhost'
 
-gromacs_portal_gromacs_cpu_nr: -1
+# user options
+gromacs_portal_user_storetime: 30  #days
+gromacs_portal_user_maxjob: 5
+gromacs_portal_user_simtime: 10.0
+
+# Gromacs options
+gromacs_portal_gromacs_cpu_nr: -1  # -1=node exclusive
 
 # DynDNS: connection parameters for frontend registration via dyndns API
 gromacs_portal_dyndns_enabled: False
