@@ -106,7 +106,7 @@ class gromacs::portal::config {
   }
 
   cron { 'gmx_jobcontroller':
-    command     => "cd ${::gromacs::portal::code_dir}/cron/ && ( ./gmx_jobcontroller.sh &>>/tmp/gmx_jobcontroller.log; PATH=\$PATH:/usr/local/bin PYTHONPATH=../spyder/gmx/ ./gmx_stats &>>/tmp/gmx_stats )",
+    command     => "cd ${::gromacs::portal::code_dir}/cron/ && ( ./gmx_jobcontroller.sh &>>/tmp/gmx_jobcontroller.log; PYTHONPATH=../spyder/gmx/ ./gmx_stats &>>/tmp/gmx_stats )",
     minute      => '*/2', #even
     user        => $::gromacs::user::user_name,
     environment => "MAILTO=${::gromacs::portal::admin_email}",

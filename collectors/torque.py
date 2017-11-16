@@ -11,6 +11,8 @@ import xml.dom.minidom
 
 import diamond.collector
 
+# Our shipped Torque 6 installs into /usr/local
+os.environ["PATH"] += os.pathsep + '/usr/local/bin'
 
 class TorqueCollector(diamond.collector.Collector):
     def _capture_output(self, cmd):
