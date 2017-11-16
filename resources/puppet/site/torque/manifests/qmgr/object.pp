@@ -14,14 +14,26 @@ define torque::qmgr::object (
 
   case $ensure {
     'present': {
-      exec { "qmgr -a -c 'create ${_object_cpd}' ${server_name}":
+      $_exe = "qmgr -a -c 'create ${_object_cpd}' ${server_name}" 
+
+      exec { $_exe:
         unless => "qmgr -a -c 'print ${_object_cpd}' ${server_name}",
+      }
+
+      if defined(Class['torque::server']) {
+        Class['torque::server'] -> Exec[$_exe]
       }
     }
 
     'absent': {
-      exec { "qmgr -a -c 'delete ${_object_cpd}' ${server_name}":
+      $_exe = "qmgr -a -c 'delete ${_object_cpd}' ${server_name}"
+
+      exec { $_exe :
         onlyif => "qmgr -a -c 'print ${_object_cpd}' ${server_name}",
+      }
+
+      if defined(Class['torque::server']) {
+        Class['torque::server'] -> Exec[$_exe]
       }
     }
 

@@ -12,11 +12,16 @@ define torque::qmgr::attribute (
   }
 
   $_cmd = "set ${_object_cpd} ${key} = ${value}"
+  $_exe = "qmgr -a -c '${_cmd}' ${server_name}"
 
-  exec { "qmgr -a -c '${_cmd}' ${server_name}":
+  exec { $_exe:
     unless      => "qmgr -a -c 'print ${_object_cpd}' | grep -iq '${_cmd}'",
     path        => '/bin:/usr/bin:/usr/local/bin',
     environment => 'KRB5CCNAME=/dev/null',
     require     => Class['torque::client'],
+  }
+
+  if defined(Class['torque::server']) {
+    Class['torque::server'] -> Exec[$_exe]
   }
 }
