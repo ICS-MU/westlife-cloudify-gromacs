@@ -18,6 +18,8 @@ define torque::qmgr::attribute (
     unless      => "qmgr -a -c 'print ${_object_cpd}' | grep -iq '${_cmd}'",
     path        => '/bin:/usr/bin:/usr/local/bin',
     environment => 'KRB5CCNAME=/dev/null',
+    tries       => 3,
+    try_sleep   => 10,
     require     => Class['torque::client'],
   }
 
