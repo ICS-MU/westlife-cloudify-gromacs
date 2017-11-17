@@ -110,13 +110,20 @@ function puppet_recipes() {
         tar -xf ${MANIFESTS_FILE} -C ${1}
         ctx logger info 'Puppet: extracting recipes ... done'
 
-        # install modules
+        # install modules (into user's home)
         cd ${1}
         PUPPETFILE="${1}/Puppetfile"
-        ctx logger info 'Puppet: installing modules '
-        test -f ${PUPPETFILE} && \
-            sudo /opt/puppetlabs/puppet/bin/r10k puppetfile install ${PUPPETFILE}
-        ctx logger info 'Puppet: installing modules ... done'
+        if [ -f "${PUPPETFILE}" ]; then
+            if diff "${PUPPETFILE}" ~/Puppetfile &>/dev/null; then
+                ctx logger info 'Puppet: modules already installed ... skipping'
+            else
+                ctx logger info 'Puppet: installing modules '
+                /opt/puppetlabs/puppet/bin/r10k puppetfile install \
+                    -v debug --moduledir "${HOME}/modules/" ${PUPPETFILE}
+                cp "${PUPPETFILE}" ~/Puppetfile
+                ctx logger info 'Puppet: installing modules ... done'
+            fi
+        fi
     fi
 }
 
@@ -226,7 +233,7 @@ ctx logger info "Puppet: running manifest ${MANIFEST}"
 
 PUPPET_OUT=$(LANG=C LC_ALL=C sudo -En /opt/puppetlabs/bin/puppet apply \
     --hiera_config="${HIERA_DIR}/hiera.yaml" \
-    --modulepath="${MANIFESTS}/modules:${MANIFESTS}/site:${FACTS_DIR}" \
+    --modulepath="${HOME}/modules:${MANIFESTS}/modules:${MANIFESTS}/site:${FACTS_DIR}" \
     --verbose --logdest=syslog --logdest=console --color=no --detailed-exitcodes \
     ${MANIFEST} 2>&1)
 
