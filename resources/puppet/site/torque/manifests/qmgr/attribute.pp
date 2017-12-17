@@ -11,7 +11,8 @@ define torque::qmgr::attribute (
     $_object_cpd = "${object}"
   }
 
-  $_cmd = "set ${_object_cpd} ${key} = ${value}"
+  $_val = regsubst($value, "'", "\\\\'", 'G')
+  $_cmd = "set ${_object_cpd} ${key} = \"${_val}\""
   $_exe = "qmgr -a -c '${_cmd}' ${server_name}"
 
   exec { $_exe:
