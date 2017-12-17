@@ -277,6 +277,8 @@ node_templates:
         target: workerNode
       - type: cloudify.relationships.depends_on
         target: workerScratch
+      - type: cloudify.relationships.depends_on
+        target: gromacs
       - type: gromacs.relationships.puppet.connected_to
         target: torqueServer
         source_interfaces:
