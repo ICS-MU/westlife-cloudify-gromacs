@@ -4,6 +4,7 @@
 The TorqueCollector parses qstat statistics from Torque.
 """
 
+import os
 import re
 import subprocess
 import sys
