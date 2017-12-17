@@ -98,7 +98,7 @@ class gromacs::portal::config {
 
   # job manager
   cron { 'gmx_gridmanager':
-    command     => "cd ${::gromacs::portal::data_dir} && /var/www/gromacs/cron/gmx_gridmanager.sh &>>/tmp/gmx_gridmanager.log",
+    command     => "test -r ${::gromacs::portal::data_dir} && ( cd ${::gromacs::portal::data_dir} && /var/www/gromacs/cron/gmx_gridmanager.sh &>>/tmp/gmx_gridmanager.log )",
     minute      => '1-59/2', #odd
     user        => $::gromacs::user::user_name,
     environment => "MAILTO=${::gromacs::portal::admin_email}",
