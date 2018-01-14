@@ -68,6 +68,10 @@ inputs:
     type: string
   olin_availability_zone:
     type: string
+  olin_network:
+    type: string
+  olin_network_pool:
+    type: string
   olin_scratch_size:
     type: integer
   worker_os_tpl:
@@ -75,6 +79,10 @@ inputs:
   worker_resource_tpl:
     type: string
   worker_availability_zone:
+    type: string
+  worker_network:
+    type: string
+  worker_network_pool:
     type: string
   worker_scratch_size:
     type: integer
@@ -161,6 +169,8 @@ node_templates:
         os_tpl: { get_input: olin_os_tpl }
         resource_tpl: { get_input: olin_resource_tpl }
         availability_zone: { get_input: olin_availability_zone }
+        network: { get_input: olin_network }
+        network_pool: { get_input: olin_network_pool }
       agent_config: *agent_configuration
       cloud_config: *cloud_configuration
       occi_config: *occi_configuration
@@ -242,6 +252,8 @@ node_templates:
         os_tpl: { get_input: worker_os_tpl }
         resource_tpl: { get_input: worker_resource_tpl }
         availability_zone: { get_input: worker_availability_zone }
+        network: { get_input: worker_network }
+        network_pool: { get_input: worker_network_pool }
       agent_config: *agent_configuration
       cloud_config: *cloud_configuration
       occi_config: *occi_configuration

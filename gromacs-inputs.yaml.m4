@@ -49,6 +49,12 @@ olin_resource_tpl: 'large'
 # availability zone
 olin_availability_zone: 'uuid_fedcloud_cerit_sc_103'
 
+# network
+olin_network: ''
+
+# network pool
+olin_network_pool: ''
+
 # scratch size (in GB)
 olin_scratch_size: 30
 
@@ -64,6 +70,12 @@ worker_resource_tpl: 'extra_large'
 
 # availability zone
 worker_availability_zone: 'uuid_fedcloud_cerit_sc_103'
+
+# network
+worker_network: ''
+
+# network pool
+worker_network_pool: ''
 
 # scratch size (in GB)
 worker_scratch_size: 30
