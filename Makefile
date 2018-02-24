@@ -106,8 +106,14 @@ cfm-exec-%:
 cfm-scale-out:
 	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodes' -p 'delta=+1'
 
+cfm-scale-out-hostpool:
+	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodesHostPool' -p 'delta=+1'
+
 cfm-scale-in:
 	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodes' -p 'delta=-1'
+
+cfm-scale-in-hostpool:
+	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodesHostPool' -p 'delta=-1'
 
 cfm-outputs:
 	cfy deployments outputs -d $(CFM_DEPLOYMENT)

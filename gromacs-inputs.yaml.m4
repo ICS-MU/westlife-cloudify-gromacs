@@ -24,6 +24,19 @@ occi_voms: True
 
 
 ############################################
+# Host-pool plugin options
+
+# Host-pool service endpoint
+hostpool_service_url: ''
+
+# Host-pool nodes remote user
+hostpool_username: 'root'
+
+# Host-pool nodes remote user
+hostpool_private_key_filename: 'ifdef(`_CFM_',`/opt/manager/resources/blueprints/_CFM_BLUEPRINT_/resources/ssh_hostpool/id_rsa',`resources/ssh_hostpool/id_rsa')'
+
+
+############################################
 # Contextualization
 
 # remote user for accessing the portal instances
@@ -93,6 +106,10 @@ worker_scratch_size: 30
 define(_WORKERS_,       2)dnl	# initial workers count
 define(_WORKERS_MIN_,   1)dnl	# minimum workers with autoscaling
 define(_WORKERS_MAX_,   3)dnl	# maximum workers with autoscaling
+
+define(_WORKERS_HOSTPOOL_,       0)dnl	# initial workers count
+define(_WORKERS_HOSTPOOL_MIN_,   0)dnl	# minimum workers with autoscaling
+define(_WORKERS_HOSTPOOL_MAX_,   0)dnl	# maximum workers with autoscaling
 
 
 ############################################

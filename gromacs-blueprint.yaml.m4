@@ -3,10 +3,11 @@ tosca_definitions_version: cloudify_dsl_1_3
 description: >
   Gromacs portal setup via FedCloud OCCI and Puppet.
 
-define(_NODE_SERVER_,       ifdef(`_CFM_',`gromacs.nodes.MonitoredServer',`gromacs.nodes.Server'))dnl
-define(_NODE_TORQUESERVER_, ifdef(`_CFM_',`gromacs.nodes.MonitoredTorqueServer',`gromacs.nodes.TorqueServer'))dnl
-define(_NODE_WEBSERVER_,    ifdef(`_CFM_',`gromacs.nodes.MonitoredWebServer', `gromacs.nodes.WebServer'))dnl
-define(_NODE_SWCOMPONENT_,  ifdef(`_CFM_',`gromacs.nodes.MonitoredSoftwareComponent', `gromacs.nodes.SoftwareComponent'))dnl
+define(_NODE_SERVER_,         ifdef(`_CFM_',`gromacs.nodes.MonitoredServer',`gromacs.nodes.Server'))dnl
+define(_NODE_HOSTPOOLSERVER_, ifdef(`_CFM_',`gromacs.nodes.MonitoredHostPoolServer',`gromacs.nodes.HostPoolServer'))dnl
+define(_NODE_TORQUESERVER_,   ifdef(`_CFM_',`gromacs.nodes.MonitoredTorqueServer',`gromacs.nodes.TorqueServer'))dnl
+define(_NODE_WEBSERVER_,      ifdef(`_CFM_',`gromacs.nodes.MonitoredWebServer', `gromacs.nodes.WebServer'))dnl
+define(_NODE_SWCOMPONENT_,    ifdef(`_CFM_',`gromacs.nodes.MonitoredSoftwareComponent', `gromacs.nodes.SoftwareComponent'))dnl
 
 dnl *** From gromacs-inputs.yaml.m4 take only macros, drop regular texts.
 divert(`-1')dnl
@@ -18,6 +19,7 @@ imports:
 #  - http://getcloudify.org/spec/fabric-plugin/1.3.1/plugin.yaml
   - https://raw.githubusercontent.com/ICS-MU/westlife-cloudify-fabric-plugin/1.4.2.1/plugin.yaml
   - http://getcloudify.org/spec/diamond-plugin/1.3.1/plugin.yaml
+  - http://getcloudify.org/spec/host-pool-plugin/1.4/plugin.yaml
   - https://raw.githubusercontent.com/ICS-MU/westlife-cloudify-occi-plugin/master/plugin.yaml
   - https://raw.githubusercontent.com/ICS-MU/westlife-cloudify-westlife-workflows/master/plugin.yaml
   - types/puppet.yaml
@@ -49,6 +51,17 @@ inputs:
   occi_voms:
     default: False
     type: boolean
+
+  # Host pool
+  hostpool_service_url:
+    default: ''
+    type: string
+  hostpool_username:
+    default: 'root'
+    type: string
+  hostpool_private_key_filename:
+    default: ''
+    type: string
 
   # contextualization
   cc_username:
@@ -150,10 +163,19 @@ dsl_definitions:
     user: { get_input: cc_username }
     key_filename: { get_input: cc_private_key_filename }
 
+  fabric_env_hostpool: &fabric_env_hostpool
+    user: { get_input: hostpool_username }
+    key_filename: { get_input: hostpool_private_key_filename }
+
   agent_configuration: &agent_configuration
     install_method: remote
     user: { get_input: cc_username }
     key: { get_input: cc_private_key_filename }
+
+  agent_configuration_hostpool: &agent_configuration_hostpool
+    install_method: remote
+    user: { get_input: hostpool_username }
+    key: { get_input: hostpool_private_key_filename }
 
   puppet_config: &puppet_config
     repo: 'https://yum.puppetlabs.com/puppetlabs-release-pc1-el-7.noarch.rpm'
@@ -161,6 +183,7 @@ dsl_definitions:
     download: resources/puppet.tar.gz
 
 node_templates:
+  # olin (frontend)
   olinNode:
     type: _NODE_SERVER_
     properties:
@@ -244,6 +267,7 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: olinNode
 
+  # worker node running on cloud (OCCI)
   workerNode:
     type: _NODE_SERVER_
     properties:
@@ -331,9 +355,78 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: workerNode
 
+  # worker node predeployed
+  workerNodeHostPool:
+    type: _NODE_HOSTPOOLSERVER_
+    properties:
+      agent_config: *agent_configuration_hostpool
+      fabric_env: *fabric_env_hostpool
+      hostpool_service_url: { get_input: hostpool_service_url }
+
+  torqueMomHostPool:
+    type: _NODE_SWCOMPONENT_
+    instances:
+      deploy: 1
+    properties:
+      fabric_env: *fabric_env_hostpool
+      puppet_config:
+        <<: *puppet_config
+        manifests:
+          start: manifests/torque_mom.pp
+        hiera:
+          westlife::volume::mountpoint: /scratch
+          westlife::volume::mode: '1777'
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: workerNodeHostPool
+      - type: cloudify.relationships.depends_on
+        target: gromacsHostPool
+      - type: gromacs.relationships.puppet.connected_to
+        target: torqueServer
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            postconfigure:
+              inputs:
+                manifest: manifests/torque_mom.pp     # nastaveni jmena/np mom na serveru
+            unlink:
+              inputs:
+                manifest: manifests/torque_mom.pp     # zruseni np mom na serveru
+        target_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              inputs:
+                manifest: manifests/torque_server.pp  # nastaveni ::torque_sever_name
+            establish:
+              inputs:
+                manifest: manifests/torque_server.pp  # rekonfigurace serveru
+            unlink:
+              inputs:
+                manifest: manifests/torque_server.pp  # rekonfigurace serveru
+
+  gromacsHostPool:
+    type: _NODE_SWCOMPONENT_
+    instances:
+      deploy: 1
+    properties:
+      fabric_env: *fabric_env_hostpool
+      puppet_config:
+        <<: *puppet_config
+        manifests:
+          start: manifests/gromacs.pp
+        hiera:
+          cuda::release: { get_input: cuda_release }
+          gromacs::user::public_key: { get_input: gromacs_user_public_key }
+          gromacs::user::private_key_b64: { get_input: gromacs_user_private_key_b64 }
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: workerNodeHostPool
+
 groups:
   workerNodes:
     members: [workerNode]
+
+  workerNodesHostPool:
+    members: [workerNodeHostPool]
 
   healWorkerNodes:
     members: [workerNode]
@@ -353,10 +446,28 @@ groups:
                 node_instance_id: { 'get_property': [ SELF, node_id ] }
                 diagnose_value: { 'get_property': [ SELF, diagnose ] }
 
+  healWorkerNodesHostPool:
+    members: [workerNodeHostPool]
+    policies:
+      simple_autoheal_policy:
+        type: cloudify.policies.types.host_failure
+        properties:
+          service:
+            - .*workerNodeHostPool.*.cpu.total.system
+          interval_between_workflows: 1800
+        triggers:
+          auto_heal_trigger:
+            type: cloudify.policies.triggers.execute_workflow
+            parameters:
+              workflow: heal
+              workflow_parameters:
+                node_instance_id: { 'get_property': [ SELF, node_id ] }
+                diagnose_value: { 'get_property': [ SELF, diagnose ] }
+
   scaleWorkerNodes:
     members: [torqueServer]
     policies:
-      up:
+      out:
         type: cloudify.policies.types.threshold
         properties:
           stability_time: 600
@@ -374,7 +485,7 @@ groups:
                 scalable_entity_name: workerNodes
                 scale_compute: true
                 max_instances: _WORKERS_MAX_
-      down:
+      in:
         type: cloudify.policies.types.threshold
         properties:
           stability_time: 600
@@ -392,6 +503,42 @@ groups:
                 scalable_entity_name: workerNodes
                 scale_compute: true
                 min_instances: _WORKERS_MIN_
+      outHostPool:
+        type: cloudify.policies.types.threshold
+        properties:
+          stability_time: 600
+          upper_bound: true
+          threshold: 2
+          service: '.*torque.jobs.queued$'
+          interval_between_workflows: 1800
+        triggers:
+          execute_scale_workflow:
+            type: cloudify.policies.triggers.execute_workflow
+            parameters:
+              workflow: scale_min_max
+              workflow_parameters:
+                delta: 1
+                scalable_entity_name: workerNodesHostPool
+                scale_compute: true
+                max_instances: _WORKERS_HOSTPOOL_MAX_
+      inHostPool:
+        type: cloudify.policies.types.threshold
+        properties:
+          stability_time: 600
+          upper_bound: false
+          threshold: 0
+          service: '.*torque.nodes.busy$'
+          interval_between_workflows: 1800
+        triggers:
+          execute_scale_workflow:
+            type: cloudify.policies.triggers.execute_workflow
+            parameters:
+              workflow: scale_min_max
+              workflow_parameters:
+                delta: -1
+                scalable_entity_name: workerNodesHostPool
+                scale_compute: true
+                min_instances: _WORKERS_HOSTPOOL_MIN_
 
 policies:
   scaleWorkerNodes:
@@ -401,6 +548,14 @@ policies:
       default_instances: _WORKERS_
 #      min_instances: _WORKERS_MIN_
 #      max_instances: _WORKERS_MAX_
+
+  scaleWorkerNodesHostPool:
+    type: cloudify.policies.scaling
+    targets: [workerNodesHostPool]
+    properties:
+      default_instances: _WORKERS_HOSTPOOL_
+#      min_instances: _WORKERS_HOSTPOOL_MIN_
+#      max_instances: _WORKERS_HOSTPOOL_MAX_
 
 outputs:
   web_endpoint:
