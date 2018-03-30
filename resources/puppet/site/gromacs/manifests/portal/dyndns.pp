@@ -16,8 +16,8 @@ class gromacs::portal::dyndns {
 
     absent: {
       service { 'ddclient':
-        ensure  => stopped,
-        enabled => false,
+        ensure => stopped,
+        enable => false,
       }
 
       package { 'ddclient':

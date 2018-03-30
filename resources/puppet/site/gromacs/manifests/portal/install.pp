@@ -15,7 +15,7 @@ class gromacs::portal::install {
     default => false
   }
 
-  class { '::apache':
+  class { 'apache':
     mpm_module     => 'prefork',
     default_vhost  => false,
     package_ensure => $_apache_package_ensure,
@@ -63,7 +63,6 @@ class gromacs::portal::install {
 <% end -%>
 ')
 
-    #TODO: uninstall
     if $gromacs::portal::auth_enabled {
       file { '/etc/httpd/mellon':
         ensure  => directory,
@@ -192,6 +191,14 @@ class gromacs::portal::install {
       ensure => absent,
       force  => true,
       backup => false,
+    }
+
+    if $gromacs::portal::auth_enabled {
+      file { '/etc/httpd/mellon':
+        ensure => absent,
+        force  => true,
+        backup => false,
+      }
     }
   }
 }
