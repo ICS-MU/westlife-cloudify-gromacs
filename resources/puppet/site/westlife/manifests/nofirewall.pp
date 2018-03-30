@@ -3,7 +3,7 @@ class westlife::nofirewall {
     purge => true,
   }
 
-  class { '::firewall':
+  class { 'firewall':
     ensure => 'stopped',
   }
 }

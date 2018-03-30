@@ -1,4 +1,5 @@
 class gromacs::portal (
+  $ensure                = $gromacs::params::ensure,
   $packages              = $gromacs::params::portal_packages,
   $code_dir              = $gromacs::params::portal_code_dir,
   $data_dir              = $gromacs::params::portal_data_dir,
@@ -40,17 +41,36 @@ class gromacs::portal (
     $_server_cgi = "${_server_url}/cgi/"
   }
 
-  require ::gromacs::user
-  contain ::gromacs::portal::install
-  contain ::gromacs::portal::config
+  unless defined(Class['gromacs::user']) {
+    class { 'gromacs::user':
+      ensure => $ensure,
+    }
+  }
 
-  Class['::gromacs::portal::install']
-    -> Class['::gromacs::portal::config']
+  contain gromacs::portal::install
+  contain gromacs::portal::config
 
-  if $dyndns_enabled {
-    contain gromacs::portal::dyndns
-
-    Class['gromacs::portal::dyndns']
+  if ($ensure == 'present') {
+    Class['gromacs::user']
       -> Class['gromacs::portal::install']
+      -> Class['gromacs::portal::config']
+
+    if $dyndns_enabled {
+      contain gromacs::portal::dyndns
+
+      Class['gromacs::portal::dyndns']
+        -> Class['gromacs::portal::install']
+    }
+  } elsif ($ensure == 'absent') {
+    Class['gromacs::portal::config']
+      -> Class['gromacs::portal::install']
+      -> Class['gromacs::user']
+
+    if $dyndns_enabled {
+      contain gromacs::portal::dyndns
+
+      Class['gromacs::portal::dyndns']
+        -> Class['gromacs::portal::install']
+    }
   }
 }

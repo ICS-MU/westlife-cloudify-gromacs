@@ -8,11 +8,13 @@ class torque::server::config {
     purge  => $torque::server::purge_nodes,
   }  
 
-  # collect exported/virtual resources
-  Torque_node       <<| server_name == $torque::server::server_name |>>
-  Torque_node        <| server_name == $torque::server::server_name |>
-  Torque::Mom::Node <<| server_name == $torque::server::server_name |>>
-  Torque::Mom::Node  <| server_name == $torque::server::server_name |>
+  # collect virtual resources
+  Torque_node <| server_name == $torque::server::server_name |>
+  Torque::Mom::Node <| server_name == $torque::server::server_name |>
+
+  # collect expoerted resources
+  #Torque_node <<| server_name == $torque::server::server_name |>>
+  #Torque::Mom::Node <<| server_name == $torque::server::server_name |>>
 
   # create node resources from provided hash
   ensure_resources(

@@ -1,10 +1,10 @@
 class westlife::volume (
-  $device,
-  $fstype,
   $mountpoint,
-  $owner = 'root',
-  $group = 'root',
-  $mode  = '0777'
+  $device = '',
+  $fstype = 'ext4',
+  $owner  = 'root',
+  $group  = 'root',
+  $mode   = '0777'
 ) {
   exec { "/usr/bin/mkdir ${mountpoint}":
     creates => $mountpoint,

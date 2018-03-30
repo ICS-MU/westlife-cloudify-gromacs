@@ -1,4 +1,5 @@
 class torque::params {
+  $ensure = present
   $server_name = 'localhost'
   $nodes = {}
   $mom_export_node = true
@@ -13,6 +14,7 @@ class torque::params {
       $client_packages = []
       $client_inst_package = 'puppet:///modules/torque/torque-package-clients-linux-x86_64.sh'
       $client_service = 'trqauthd'
+      $client_logs_dir = '/var/spool/torque/client_logs'
 
       $server_packages = []
       $server_inst_package = 'puppet:///modules/torque/torque-package-server-linux-x86_64.sh'

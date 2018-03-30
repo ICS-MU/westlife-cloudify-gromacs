@@ -8,6 +8,11 @@ RETRIES=50
 VIRTUAL_ENV?=~/cfy
 GROMACS_PORTAL?=git@github.com:ICS-MU/westlife-gromacs-portal.git
 CFY_VERSION?=3.4.2
+IS_CCZE:=$(shell ccze --version 2>/dev/null)
+
+ifdef IS_CCZE
+CCZE:=| ccze --mode ansi
+endif
 
 .PHONY: blueprints inputs validate test clean bootstrap bootstrap-cfy bootstrap-occi bootstrap-m4
 
@@ -51,9 +56,9 @@ cfy-test: cfy-deploy cfy-undeploy
 cfm-deploy: cfm-init cfm-exec-install
 
 cfm-undeploy:
-	-cfy executions start -d $(CFM_DEPLOYMENT) -w uninstall
-	-cfy deployments delete -d $(CFM_DEPLOYMENT)
-	cfy blueprints delete -b $(CFM_BLUEPRINT)
+	-cfy executions start -d $(CFM_DEPLOYMENT) -w uninstall $(CCZE)
+	-cfy deployments delete -d $(CFM_DEPLOYMENT) $(CCZE)
+	cfy blueprints delete -b $(CFM_BLUEPRINT) $(CCZE)
 
 cfm-test: cfm-deploy cfm-exec-uninstall cfm-clean
 
@@ -83,11 +88,11 @@ resources/puppet.tar.gz: resources/puppet/site/gromacs/files/private/gromacs-por
 ### Standalone deployment ########################
 
 cfy-init: cfy-$(BLUEPRINT) cfy-$(INPUTS) resources/puppet.tar.gz
-	cfy local init -p cfy-$(BLUEPRINT) -i cfy-$(INPUTS) --install-plugins
+	cfy local init -p cfy-$(BLUEPRINT) -i cfy-$(INPUTS) --install-plugins $(CCZE)
 
 # execute deployment
 cfy-exec-%:
-	cfy local execute -w $* --task-retries $(RETRIES)
+	cfy local execute -w $* --task-retries $(RETRIES) $(CCZE)
 
 cfy-outputs:
 	cfy local outputs
@@ -96,18 +101,24 @@ cfy-outputs:
 ### Cloudify Manager managed deployment ##########
 
 cfm-init: cfm-$(BLUEPRINT) cfm-$(INPUTS) resources/puppet.tar.gz
-	cfy blueprints upload -b $(CFM_BLUEPRINT) -p cfm-$(BLUEPRINT)
-	cfy deployments create -b $(CFM_BLUEPRINT) -d $(CFM_DEPLOYMENT) -i cfm-$(INPUTS)
+	cfy blueprints upload -b $(CFM_BLUEPRINT) -p cfm-$(BLUEPRINT) $(CCZE)
+	cfy deployments create -b $(CFM_BLUEPRINT) -d $(CFM_DEPLOYMENT) -i cfm-$(INPUTS) $(CCZE)
 
 cfm-exec-%:
-	cfy executions start -d $(CFM_DEPLOYMENT) -w $*
+	cfy executions start -d $(CFM_DEPLOYMENT) -w $* $(CCZE)
 	sleep 10
 
 cfm-scale-out:
-	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodes' -p 'delta=+1'
+	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodes' -p 'delta=+1' $(CCZE)
+
+cfm-scale-out-hostpool:
+	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodesHostPool' -p 'delta=+1' $(CCZE)
 
 cfm-scale-in:
-	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodes' -p 'delta=-1'
+	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodes' -p 'delta=-1' $(CCZE)
+
+cfm-scale-in-hostpool:
+	cfy executions start -d $(CFM_DEPLOYMENT) -w scale -p 'scalable_entity_name=workerNodesHostPool' -p 'delta=-1' $(CCZE)
 
 cfm-outputs:
 	cfy deployments outputs -d $(CFM_DEPLOYMENT)
