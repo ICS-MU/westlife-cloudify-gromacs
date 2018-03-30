@@ -1,5 +1,7 @@
 class gromacs::params {
+  $ensure = present
   $version = '5.1.4'
+  $base_dir = '/opt/gromacs'
 
   $user_name = 'gromacs'
   $user_id = undef

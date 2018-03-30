@@ -1,6 +1,8 @@
 class torque::client::service {
+  $_ensure = ($torque::client::ensure == present)
+
   service { $torque::client::service:
-    ensure  => running,
-    enable  => true,
+    ensure  => $_ensure,
+    enable  => $_ensure,
   }
 }

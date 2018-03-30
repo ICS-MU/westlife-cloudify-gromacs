@@ -53,8 +53,8 @@ function install_jq() {
     fi
 }
 
-# install agent
-function install_pc1_agent() {
+# install Puppet agent
+function install_puppet_agent() {
     if ! [ -x /opt/puppetlabs/bin/puppet ]; then
         ctx logger info 'Puppet: installing Puppet Agent'
         PC_REPO=$(ctx_node_properties 'puppet_config.repo')
@@ -180,7 +180,7 @@ CTX_SIDE="${relationship_side:-$1}"
 # install Puppet on very first run
 install_python
 install_jq
-install_pc1_agent
+install_puppet_agent
 
 CTX_TYPE=$(ctx type)
 CTX_OPERATION_NAME=$(ctx operation name | rev | cut -d. -f1 | rev)
@@ -239,8 +239,15 @@ PUPPET_OUT=$(LANG=C LC_ALL=C sudo -En /opt/puppetlabs/bin/puppet apply \
 
 PUPPET_RTN=$?
 
-ctx logger info "Puppet: ${PUPPET_OUT}"
-ctx logger info 'Puppet: done'
+# too long Puppet output write line by line
+ARG_MAX=$(getconf ARG_MAX)
+if [ "${#PUPPET_OUT}" -lt $(( $ARG_MAX - 100 )) ]; then
+    ctx logger info "Puppet: ${PUPPET_OUT}"
+else
+    echo "${PUPPET_OUT}" | while IFS=$'\n' read -r LINE; do
+        ctx logger info "Puppet: ${LINE}"
+    done
+fi
 
 # https://docs.puppet.com/puppet/latest/man/apply.html
 # 0: The run succeeded with no changes or failures; the system was already in the desired state.
@@ -249,7 +256,9 @@ ctx logger info 'Puppet: done'
 # 4: The run succeeded, and some resources failed.
 # 6: The run succeeded, and included both changes and failures.
 if [ ${PUPPET_RTN} -eq 1 ] || [ ${PUPPET_RTN} -eq 4 ] || [ ${PUPPET_RTN} -eq 6 ]; then
+    ctx logger info "Puppet: done with errors (${PUPPET_RTN})!"
     exit ${PUPPET_RTN}
 else
+    ctx logger info 'Puppet: done'
     exit 0
 fi

@@ -3,16 +3,19 @@ tosca_definitions_version: cloudify_dsl_1_3
 description: >
   Gromacs portal setup via FedCloud OCCI and Puppet.
 
+dnl *** From gromacs-inputs.yaml.m4 take only macros, drop regular texts.
+divert(`-1')dnl
+include(gromacs-inputs.yaml.m4)dnl
+divert(`0')dnl
+
 define(_NODE_SERVER_,         ifdef(`_CFM_',`gromacs.nodes.MonitoredServer',`gromacs.nodes.Server'))dnl
 define(_NODE_HOSTPOOLSERVER_, ifdef(`_CFM_',`gromacs.nodes.MonitoredHostPoolServer',`gromacs.nodes.HostPoolServer'))dnl
 define(_NODE_TORQUESERVER_,   ifdef(`_CFM_',`gromacs.nodes.MonitoredTorqueServer',`gromacs.nodes.TorqueServer'))dnl
 define(_NODE_WEBSERVER_,      ifdef(`_CFM_',`gromacs.nodes.MonitoredWebServer', `gromacs.nodes.WebServer'))dnl
 define(_NODE_SWCOMPONENT_,    ifdef(`_CFM_',`gromacs.nodes.MonitoredSoftwareComponent', `gromacs.nodes.SoftwareComponent'))dnl
-
-dnl *** From gromacs-inputs.yaml.m4 take only macros, drop regular texts.
-divert(`-1')dnl
-include(gromacs-inputs.yaml.m4)dnl
-divert(`0')dnl
+define(_NAME_OLINNODE_,       ifelse(_PROVISIONER_,`hostpool',`olinNodeHostPool',`olinNode'))dnl
+define(_NAME_WORKERNODE_,     ifelse(_PROVISIONER_,`hostpool',`workerNodeHostPool',`workerNode'))dnl
+define(_NAME_TORQUESERVER_,   ifelse(_PROVISIONER_,`hostpool',`torqueServerHostPool',`torqueServer'))dnl
 
 imports:
   - http://getcloudify.org/spec/cloudify/3.4/types.yaml
@@ -75,30 +78,34 @@ inputs:
     default: {}
 
   # VM parameters
-  olin_os_tpl:
+  olin_occi_os_tpl:
     type: string
-  olin_resource_tpl:
+  olin_occi_resource_tpl:
     type: string
-  olin_availability_zone:
+  olin_occi_availability_zone:
     type: string
-  olin_network:
+  olin_occi_network:
     type: string
-  olin_network_pool:
+  olin_occi_network_pool:
     type: string
-  olin_scratch_size:
+  olin_occi_scratch_size:
     type: integer
-  worker_os_tpl:
+  olin_hostpool_tags:
+    default: []
+  worker_occi_os_tpl:
     type: string
-  worker_resource_tpl:
+  worker_occi_resource_tpl:
     type: string
-  worker_availability_zone:
+  worker_occi_availability_zone:
     type: string
-  worker_network:
+  worker_occi_network:
     type: string
-  worker_network_pool:
+  worker_occi_network_pool:
     type: string
-  worker_scratch_size:
+  worker_occi_scratch_size:
     type: integer
+  worker_hostpool_tags:
+    default: []
 
   # Application parameters
   cuda_release:
@@ -178,22 +185,167 @@ dsl_definitions:
     key: { get_input: hostpool_private_key_filename }
 
   puppet_config: &puppet_config
-    repo: 'https://yum.puppetlabs.com/puppetlabs-release-pc1-el-7.noarch.rpm'
+    repo: 'https://yum.puppetlabs.com/puppet5/puppet5-release-el-7.noarch.rpm'
     package: 'puppet-agent'
     download: resources/puppet.tar.gz
 
 node_templates:
+
+ifelse(_PROVISIONER_,`hostpool',`
+  ### Predeployed nodes #######################################################
+
+  # predeployed olin (frontend)
+  olinNodeHostPool:
+    type: _NODE_HOSTPOOLSERVER_
+    properties:
+      agent_config: *agent_configuration_hostpool
+      fabric_env: *fabric_env_hostpool
+      hostpool_service_url: { get_input: hostpool_service_url }
+      filters:
+        tags: { get_input: olin_hostpool_tags }
+
+  gromacsPortalHostPool:
+    type: _NODE_WEBSERVER_
+    instances:
+      deploy: 1
+    properties:
+      fabric_env: *fabric_env_hostpool
+      puppet_config:
+        <<: *puppet_config
+        manifests:
+          start: manifests/gromacs_portal.pp
+          delete: manifests/gromacs_portal.pp
+        hiera:
+          gromacs::portal::servername: { get_input: gromacs_portal_servername }
+          gromacs::portal::ssl_enabled: { get_input: gromacs_portal_ssl_enabled }
+          gromacs::portal::admin_email: { get_input: gromacs_portal_admin_email }
+          gromacs::portal::gromacs_cpu_nr: { get_input: gromacs_portal_gromacs_cpu_nr }
+          gromacs::portal::user_storetime: { get_input: gromacs_portal_user_storetime }
+          gromacs::portal::user_maxjob: { get_input: gromacs_portal_user_maxjob }
+          gromacs::portal::user_simtime: { get_input: gromacs_portal_user_simtime }
+          gromacs::portal::auth_enabled: { get_input: gromacs_portal_auth_enabled }
+          gromacs::portal::auth_service_key_b64: { get_input: gromacs_portal_auth_service_key_b64 }
+          gromacs::portal::auth_service_cert_b64: { get_input: gromacs_portal_auth_service_cert_b64 }
+          gromacs::portal::auth_service_meta_b64: { get_input: gromacs_portal_auth_service_meta_b64 }
+          gromacs::portal::dyndns_enabled: { get_input: gromacs_portal_dyndns_enabled }
+          gromacs::portal::dyndns_hostname: { get_input: gromacs_portal_dyndns_hostname }
+          gromacs::portal::dyndns_server: { get_input: gromacs_portal_dyndns_server }
+          gromacs::portal::dyndns_login: { get_input: gromacs_portal_dyndns_login }
+          gromacs::portal::dyndns_password: { get_input: gromacs_portal_dyndns_password }
+          gromacs::portal::dyndns_ssl: { get_input: gromacs_portal_dyndns_ssl }
+          gromacs::user::public_key: { get_input: gromacs_user_public_key }
+          gromacs::user::private_key_b64: { get_input: gromacs_user_private_key_b64 }
+          westlife::postfix::root_recipient: { get_input: gromacs_portal_admin_email }
+          westlife::postfix::gromacs_recipient: { get_input: gromacs_portal_admin_email }
+          #westlife::volume::device: /dev/vdc
+          westlife::volume::fstype: ext4
+          westlife::volume::mountpoint: /data
+          westlife::volume::mode: "1777"
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: olinNodeHostPool
+      - type: gromacs.relationships.puppet.connected_to
+        target: torqueServerHostPool
+
+  torqueServerHostPool:
+    type: _NODE_TORQUESERVER_
+    instances:
+      deploy: 1
+    properties:
+      fabric_env: *fabric_env_hostpool
+      puppet_config:
+        <<: *puppet_config
+        manifests:
+          start: manifests/torque_server.pp
+          delete: manifests/torque_server.pp
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: olinNodeHostPool
+
+  # predeployed worker node
+  workerNodeHostPool:
+    type: _NODE_HOSTPOOLSERVER_
+    properties:
+      agent_config: *agent_configuration_hostpool
+      fabric_env: *fabric_env_hostpool
+      hostpool_service_url: { get_input: hostpool_service_url }
+      filters:
+        tags: { get_input: worker_hostpool_tags }
+
+  torqueMomHostPool:
+    type: _NODE_SWCOMPONENT_
+    instances:
+      deploy: 1
+    properties:
+      fabric_env: *fabric_env_hostpool
+      puppet_config:
+        <<: *puppet_config
+        manifests:
+          start: manifests/torque_mom.pp
+          delete: manifests/torque_mom.pp
+        hiera:
+          westlife::volume::mountpoint: /scratch
+          westlife::volume::mode: "1777"
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: workerNodeHostPool
+      - type: cloudify.relationships.depends_on
+        target: gromacsHostPool
+      - type: gromacs.relationships.puppet.connected_to
+        target: torqueServerHostPool
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            postconfigure:
+              inputs:
+                manifest: manifests/torque_mom.pp     # nastaveni jmena/np mom na serveru
+            unlink:
+              inputs:
+                manifest: manifests/torque_mom.pp     # zruseni np mom na serveru
+        target_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              inputs:
+                manifest: manifests/torque_server.pp  # nastaveni ::torque_sever_name
+            establish:
+              inputs:
+                manifest: manifests/torque_server.pp  # rekonfigurace serveru
+            unlink:
+              inputs:
+                manifest: manifests/torque_server.pp  # rekonfigurace serveru
+
+  gromacsHostPool:
+    type: _NODE_SWCOMPONENT_
+    instances:
+      deploy: 1
+    properties:
+      fabric_env: *fabric_env_hostpool
+      puppet_config:
+        <<: *puppet_config
+        manifests:
+          start: manifests/gromacs.pp
+          delete: manifests/gromacs.pp
+        hiera:
+          cuda::release: { get_input: cuda_release }
+          gromacs::user::public_key: { get_input: gromacs_user_public_key }
+          gromacs::user::private_key_b64: { get_input: gromacs_user_private_key_b64 }
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: workerNodeHostPool
+
+',_PROVISIONER_,`occi',`
+  ### OCCI nodes #############################################################
+
   # olin (frontend)
   olinNode:
     type: _NODE_SERVER_
     properties:
-      name: 'Gromacs all-in-one server node'
+      name: "Gromacs all-in-one server node"
       resource_config:
-        os_tpl: { get_input: olin_os_tpl }
-        resource_tpl: { get_input: olin_resource_tpl }
-        availability_zone: { get_input: olin_availability_zone }
-        network: { get_input: olin_network }
-        network_pool: { get_input: olin_network_pool }
+        os_tpl: { get_input: olin_occi_os_tpl }
+        resource_tpl: { get_input: olin_occi_resource_tpl }
+        availability_zone: { get_input: olin_occi_availability_zone }
+        network: { get_input: olin_occi_network }
+        network_pool: { get_input: olin_occi_network_pool }
       agent_config: *agent_configuration
       cloud_config: *cloud_configuration
       occi_config: *occi_configuration
@@ -202,8 +354,8 @@ node_templates:
   olinStorage:
     type: cloudify.occi.nodes.Volume
     properties:
-      size: { get_input: olin_scratch_size }
-      availability_zone: { get_input: olin_availability_zone }
+      size: { get_input: olin_occi_scratch_size }
+      availability_zone: { get_input: olin_occi_availability_zone }
       occi_config: *occi_configuration
     relationships:
       - type: cloudify.occi.relationships.volume_contained_in_server
@@ -244,7 +396,7 @@ node_templates:
           westlife::volume::device: /dev/vdc
           westlife::volume::fstype: ext4
           westlife::volume::mountpoint: /data
-          westlife::volume::mode: '1777'
+          westlife::volume::mode: "1777"
     relationships:
       - type: cloudify.relationships.contained_in
         target: olinNode
@@ -271,13 +423,13 @@ node_templates:
   workerNode:
     type: _NODE_SERVER_
     properties:
-      name: 'Gromacs worker node'
+      name: "Gromacs worker node"
       resource_config:
-        os_tpl: { get_input: worker_os_tpl }
-        resource_tpl: { get_input: worker_resource_tpl }
-        availability_zone: { get_input: worker_availability_zone }
-        network: { get_input: worker_network }
-        network_pool: { get_input: worker_network_pool }
+        os_tpl: { get_input: worker_occi_os_tpl }
+        resource_tpl: { get_input: worker_occi_resource_tpl }
+        availability_zone: { get_input: worker_occi_availability_zone }
+        network: { get_input: worker_occi_network }
+        network_pool: { get_input: worker_occi_network_pool }
       agent_config: *agent_configuration
       cloud_config: *cloud_configuration
       occi_config: *occi_configuration
@@ -286,8 +438,8 @@ node_templates:
   workerScratch:
     type: cloudify.occi.nodes.Volume
     properties:
-      size: { get_input: worker_scratch_size }
-      availability_zone: { get_input: olin_availability_zone }
+      size: { get_input: worker_occi_scratch_size }
+      availability_zone: { get_input: worker_occi_availability_zone }
       occi_config: *occi_configuration
     relationships:
       - type: cloudify.occi.relationships.volume_contained_in_server
@@ -307,7 +459,7 @@ node_templates:
           westlife::volume::device: /dev/vdc
           westlife::volume::fstype: ext4
           westlife::volume::mountpoint: /scratch
-          westlife::volume::mode: '1777'
+          westlife::volume::mode: "1777"
     relationships:
       - type: cloudify.relationships.contained_in
         target: workerNode
@@ -354,106 +506,21 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: workerNode
-
-  # worker node predeployed
-  workerNodeHostPool:
-    type: _NODE_HOSTPOOLSERVER_
-    properties:
-      agent_config: *agent_configuration_hostpool
-      fabric_env: *fabric_env_hostpool
-      hostpool_service_url: { get_input: hostpool_service_url }
-
-  torqueMomHostPool:
-    type: _NODE_SWCOMPONENT_
-    instances:
-      deploy: 1
-    properties:
-      fabric_env: *fabric_env_hostpool
-      puppet_config:
-        <<: *puppet_config
-        manifests:
-          start: manifests/torque_mom.pp
-        hiera:
-          westlife::volume::mountpoint: /scratch
-          westlife::volume::mode: '1777'
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: workerNodeHostPool
-      - type: cloudify.relationships.depends_on
-        target: gromacsHostPool
-      - type: gromacs.relationships.puppet.connected_to
-        target: torqueServer
-        source_interfaces:
-          cloudify.interfaces.relationship_lifecycle:
-            postconfigure:
-              inputs:
-                manifest: manifests/torque_mom.pp     # nastaveni jmena/np mom na serveru
-            unlink:
-              inputs:
-                manifest: manifests/torque_mom.pp     # zruseni np mom na serveru
-        target_interfaces:
-          cloudify.interfaces.relationship_lifecycle:
-            preconfigure:
-              inputs:
-                manifest: manifests/torque_server.pp  # nastaveni ::torque_sever_name
-            establish:
-              inputs:
-                manifest: manifests/torque_server.pp  # rekonfigurace serveru
-            unlink:
-              inputs:
-                manifest: manifests/torque_server.pp  # rekonfigurace serveru
-
-  gromacsHostPool:
-    type: _NODE_SWCOMPONENT_
-    instances:
-      deploy: 1
-    properties:
-      fabric_env: *fabric_env_hostpool
-      puppet_config:
-        <<: *puppet_config
-        manifests:
-          start: manifests/gromacs.pp
-        hiera:
-          cuda::release: { get_input: cuda_release }
-          gromacs::user::public_key: { get_input: gromacs_user_public_key }
-          gromacs::user::private_key_b64: { get_input: gromacs_user_private_key_b64 }
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: workerNodeHostPool
+',`errprint(Missing definition of _PROVISIONER_ in the inputs
+)m4exit(1)')
 
 groups:
   workerNodes:
-    members: [workerNode]
-
-  workerNodesHostPool:
-    members: [workerNodeHostPool]
+    members: [_NAME_WORKERNODE_]
 
   healWorkerNodes:
-    members: [workerNode]
+    members: [_NAME_WORKERNODE_]
     policies:
       simple_autoheal_policy:
         type: cloudify.policies.types.host_failure
         properties:
           service:
-            - .*workerNode.*.cpu.total.system
-          interval_between_workflows: 1800
-        triggers:
-          auto_heal_trigger:
-            type: cloudify.policies.triggers.execute_workflow
-            parameters:
-              workflow: heal
-              workflow_parameters:
-                node_instance_id: { 'get_property': [ SELF, node_id ] }
-                diagnose_value: { 'get_property': [ SELF, diagnose ] }
-
-  healWorkerNodesHostPool:
-    members: [workerNodeHostPool]
-    policies:
-      simple_autoheal_policy:
-        type: cloudify.policies.types.host_failure
-        properties:
-          service:
-            - .*workerNodeHostPool.*.cpu.total.system
+            - .*_NAME_WORKERNODE_.*.cpu.total.system
           interval_between_workflows: 1800
         triggers:
           auto_heal_trigger:
@@ -465,7 +532,7 @@ groups:
                 diagnose_value: { 'get_property': [ SELF, diagnose ] }
 
   scaleWorkerNodes:
-    members: [torqueServer]
+    members: [_NAME_TORQUESERVER_]
     policies:
       out:
         type: cloudify.policies.types.threshold
@@ -503,42 +570,6 @@ groups:
                 scalable_entity_name: workerNodes
                 scale_compute: true
                 min_instances: _WORKERS_MIN_
-      outHostPool:
-        type: cloudify.policies.types.threshold
-        properties:
-          stability_time: 600
-          upper_bound: true
-          threshold: 2
-          service: '.*torque.jobs.queued$'
-          interval_between_workflows: 1800
-        triggers:
-          execute_scale_workflow:
-            type: cloudify.policies.triggers.execute_workflow
-            parameters:
-              workflow: scale_min_max
-              workflow_parameters:
-                delta: 1
-                scalable_entity_name: workerNodesHostPool
-                scale_compute: true
-                max_instances: _WORKERS_HOSTPOOL_MAX_
-      inHostPool:
-        type: cloudify.policies.types.threshold
-        properties:
-          stability_time: 600
-          upper_bound: false
-          threshold: 0
-          service: '.*torque.nodes.busy$'
-          interval_between_workflows: 1800
-        triggers:
-          execute_scale_workflow:
-            type: cloudify.policies.triggers.execute_workflow
-            parameters:
-              workflow: scale_min_max
-              workflow_parameters:
-                delta: -1
-                scalable_entity_name: workerNodesHostPool
-                scale_compute: true
-                min_instances: _WORKERS_HOSTPOOL_MIN_
 
 policies:
   scaleWorkerNodes:
@@ -549,18 +580,10 @@ policies:
 #      min_instances: _WORKERS_MIN_
 #      max_instances: _WORKERS_MAX_
 
-  scaleWorkerNodesHostPool:
-    type: cloudify.policies.scaling
-    targets: [workerNodesHostPool]
-    properties:
-      default_instances: _WORKERS_HOSTPOOL_
-#      min_instances: _WORKERS_HOSTPOOL_MIN_
-#      max_instances: _WORKERS_HOSTPOOL_MAX_
-
 outputs:
   web_endpoint:
     description: Gromacs portal endpoint
     value:
-      url: { concat: ['http://', { get_attribute: [olinNode, ip] }] }
+      url: { concat: ['http://', { get_attribute: [_NAME_OLINNODE_, ip] }] }
 
 # vim: set syntax=yaml

@@ -1,8 +1,17 @@
+$ensure = $facts['cloudify_ctx_operation_name'] ? {
+  start   => present,
+  delete  => absent,
+  default => undef,
+}
+
+###
+
 include ::westlife::volume
 include ::westlife::nofirewall
 
 if ($::cloudify_ctx_type == 'node-instance') {
   class { '::torque::mom':
+    ensure      => $ensure,
     server_name => $::torque_server_name,
   }
 

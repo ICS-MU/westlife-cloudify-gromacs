@@ -1,4 +1,5 @@
 class torque::server (
+  String  $ensure        = $torque::params::ensure,
   Array   $packages      = $torque::params::server_packages,
   String  $inst_package  = $torque::params::server_inst_package,
   String  $serverdb_file = $torque::params::serverdb_file,
@@ -8,14 +9,33 @@ class torque::server (
   String  $server_name   = $torque::params::server_name
 ) inherits torque::params {
 
-  require torque::client
-  contain torque::server::install
-  contain torque::server::config
-  contain torque::server::service
-  contain torque::server::live_config
+  class { 'torque::client':
+    ensure => $ensure,
+  }
 
-  Class['torque::server::install']
-    -> Class['torque::server::config']
-    ~> Class['torque::server::service']
-    -> Class['torque::server::live_config']
+  contain torque::server::install
+  contain torque::server::service
+
+  case $ensure {
+    present: {
+      contain torque::server::config
+      contain torque::server::live_config
+
+      Class['torque::client']
+        -> Class['torque::server::install']
+        -> Class['torque::server::config']
+        ~> Class['torque::server::service']
+        -> Class['torque::server::live_config']
+    }
+
+    absent: {
+      Class['torque::client']
+        -> Class['torque::server::service']
+        -> Class['torque::server::install']
+    }
+
+    default: {
+      fail("Invalid ensure state: ${ensure}")
+    }
+  }
 }

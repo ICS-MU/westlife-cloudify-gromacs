@@ -1,4 +1,14 @@
 ############################################
+# Provisioner
+#
+# Note: Uncomment one of the following provisioners
+# to choose between OCCI or Host-pool
+
+define(_PROVISIONER_, occi)dnl
+# define(_PROVISIONER_, hostpool)dnl
+
+
+############################################
 # OCCI authentication options
 
 # OCCI server URL, defaults to the CESNET's FedCloud site
@@ -54,44 +64,50 @@ cc_private_key_filename: 'ifdef(`_CFM_',`/opt/manager/resources/blueprints/_CFM_
 # Main node (portal, batch server) deployment parameters
 
 # OS template
-olin_os_tpl: 'uuid_enmr_centos_7_cerit_sc_187'
+olin_occi_os_tpl: 'uuid_enmr_centos_7_cerit_sc_187'
 
 # sizing
-olin_resource_tpl: 'large'
+olin_occi_resource_tpl: 'large'
 
 # availability zone
-olin_availability_zone: 'uuid_fedcloud_cerit_sc_103'
+olin_occi_availability_zone: 'uuid_fedcloud_cerit_sc_103'
 
 # network
-olin_network: ''
+olin_occi_network: ''
 
 # network pool
-olin_network_pool: ''
+olin_occi_network_pool: ''
 
 # scratch size (in GB)
-olin_scratch_size: 30
+olin_occi_scratch_size: 30
+
+# list of filter tags for the Host-pool
+olin_hostpool_tags: ['olin']
 
 
 ############################################
 # Worker node deployment parameters
 
 # OS template
-worker_os_tpl: 'uuid_enmr_centos_7_cerit_sc_187'
+worker_occi_os_tpl: 'uuid_enmr_centos_7_cerit_sc_187'
 
 # sizing
-worker_resource_tpl: 'extra_large'
+worker_occi_resource_tpl: 'extra_large'
 
 # availability zone
-worker_availability_zone: 'uuid_fedcloud_cerit_sc_103'
+worker_occi_availability_zone: 'uuid_fedcloud_cerit_sc_103'
 
 # network
-worker_network: ''
+worker_occi_network: ''
 
 # network pool
-worker_network_pool: ''
+worker_occi_network_pool: ''
 
 # scratch size (in GB)
-worker_scratch_size: 30
+worker_occi_scratch_size: 30
+
+# list of filter tags for the Host-pool
+worker_hostpool_tags: ['worker']
 
 
 ############################################
@@ -107,10 +123,6 @@ define(_WORKERS_,       2)dnl	# initial workers count
 define(_WORKERS_MIN_,   1)dnl	# minimum workers with autoscaling
 define(_WORKERS_MAX_,   3)dnl	# maximum workers with autoscaling
 
-define(_WORKERS_HOSTPOOL_,       0)dnl	# initial workers count
-define(_WORKERS_HOSTPOOL_MIN_,   0)dnl	# minimum workers with autoscaling
-define(_WORKERS_HOSTPOOL_MAX_,   0)dnl	# maximum workers with autoscaling
-
 
 ############################################
 # Application
@@ -122,7 +134,7 @@ cuda_release: '7.0'
 gromacs_portal_servername: NULL
 
 # enable https:// only access on the web portal secured by Let's Encrypt
-gromacs_portal_ssl_enabled: False   # if True, setup valid admin e-mail below
+gromacs_portal_ssl_enabled: False  # if True, setup valid admin e-mail below
 
 # your valid contact e-mail address
 gromacs_portal_admin_email: 'root@localhost'
@@ -141,10 +153,10 @@ gromacs_portal_dyndns_hostname: ''
 gromacs_portal_dyndns_server: ''
 gromacs_portal_dyndns_login: ''
 gromacs_portal_dyndns_password: ''
-gromacs_portal_dyndns_ssl: 'yes'            # 'yes' or 'no'
+gromacs_portal_dyndns_ssl: "yes"            # "yes" or "no"
 
 # user SAML authentication via mod_auth_mellon
-gromacs_portal_auth_enabled: False   # if True, SSL needs to be enabled
+gromacs_portal_auth_enabled: False  # if True, SSL needs to be enabled
 gromacs_portal_auth_service_key_b64:  'esyscmd(base64 -w0 service.key)'
 gromacs_portal_auth_service_cert_b64: 'esyscmd(base64 -w0 service.cert)'
 gromacs_portal_auth_service_meta_b64: 'esyscmd(base64 -w0 service.xml)'

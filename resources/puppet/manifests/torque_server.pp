@@ -1,9 +1,19 @@
+$ensure = $facts['cloudify_ctx_operation_name'] ? {
+  start   => present,
+  delete  => absent,
+  default => undef,
+}
+
+###
+
 include ::westlife::nofirewall
 
 if ($::cloudify_ctx_type == 'node-instance') or
    ($::cloudify_ctx_operation_name in ['establish', 'unlink'])
 {
-  include torque::server
+  class { 'torque::server':
+    ensure => $ensure,
+  }
 
   $facts.each |String $key, $value| {
     if $key =~ /^torque_node_(.*)$/ {
