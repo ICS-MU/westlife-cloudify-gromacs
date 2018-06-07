@@ -1,7 +1,7 @@
 $ensure = $facts['cloudify_ctx_operation_name'] ? {
-  start   => present,
   delete  => absent,
-  default => undef,
+  stop    => absent,
+  default => present,
 }
 
 ###

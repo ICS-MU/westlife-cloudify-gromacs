@@ -1,3 +1,7 @@
+---
+
+define(SQ,')
+
 ############################################
 # Provisioner
 #
@@ -37,14 +41,16 @@ occi_voms: True
 # Host-pool plugin options
 
 # Host-pool service endpoint
-hostpool_service_url: ''
+hostpool_service_url: 'http://127.0.0.1:8080'
 
 # Host-pool nodes remote user
 hostpool_username: 'root'
 
 # Host-pool nodes remote user
-hostpool_private_key_filename: 'ifdef(`_CFM_',`/opt/manager/resources/blueprints/_CFM_BLUEPRINT_/resources/ssh_hostpool/id_rsa',`resources/ssh_hostpool/id_rsa')'
-
+hostpool_private_key: | ifelse(_PROVISIONER_,`hostpool',`
+esyscmd(`/bin/bash -c 'SQ`set -o pipefail; cat resources/ssh_hostpool/id_rsa | sed -e "s/^/  /"'SQ)
+ifelse(sysval, `0', `', `m4exit(`1')')dnl
+',`')
 
 ############################################
 # Contextualization
@@ -53,12 +59,14 @@ hostpool_private_key_filename: 'ifdef(`_CFM_',`/opt/manager/resources/blueprints
 cc_username: 'cfy'
 
 # SSH public key for remote user
-cc_public_key: 'include(`resources/ssh_cfy/id_rsa.pub')' 
+cc_public_key: |
+esyscmd(`/bin/bash -c 'SQ`set -o pipefail; cat resources/ssh_cfy/id_rsa.pub | sed -e "s/^/  /"'SQ)
+ifelse(sysval, `0', `', `m4exit(`1')')dnl
 
 # SSH private key (filename or inline) for remote user
-# TODO: better dettect CFM path
-cc_private_key_filename: 'ifdef(`_CFM_',`/opt/manager/resources/blueprints/_CFM_BLUEPRINT_/resources/ssh_cfy/id_rsa',`resources/ssh_cfy/id_rsa')'
-
+cc_private_key: |
+esyscmd(`/bin/bash -c 'SQ`set -o pipefail; cat resources/ssh_cfy/id_rsa | sed -e "s/^/  /"'SQ)
+ifelse(sysval, `0', `', `m4exit(`1')')dnl
 
 ############################################
 # Main node (portal, batch server) deployment parameters
@@ -165,6 +173,6 @@ gromacs_portal_auth_service_meta_b64: 'esyscmd(base64 -w0 service.xml)'
 gromacs_user_public_key: 'include(`resources/ssh_gromacs/id_rsa.pub')'
 
 # SSH private key of the gromacs user
-gromacs_user_private_key_b64: 'esyscmd(base64 -w0 resources/ssh_gromacs/id_rsa)'
+gromacs_user_private_key_b64: 'esyscmd(base64 -w0 resources/ssh_gromacs/id_rsa)'ifelse(sysval, `0', `', `m4exit(`1')')
 
 # vim: set syntax=yaml

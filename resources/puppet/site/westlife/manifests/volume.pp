@@ -10,16 +10,19 @@ class westlife::volume (
     creates => $mountpoint,
   }
 
-  if $facts['disks'][delete($device, '/dev/')] {
-    mount { $mountpoint:
-      ensure  => mounted,
-      device  => $device,
-      fstype  => $fstype,
-      atboot  => true,
-      options => 'defaults',
-      require => Exec["/usr/bin/mkdir ${mountpoint}"],
-      before  => File[$mountpoint],
-    }
+  $_ensure = delete($device, '/dev/') in $facts['disks'] ? {
+    true    => mounted,
+    default => absent,
+  }
+
+  mount { $mountpoint:
+    ensure  => $_ensure,
+    device  => $device,
+    fstype  => $fstype,
+    atboot  => true,
+    options => 'defaults',
+    require => Exec["/usr/bin/mkdir ${mountpoint}"],
+    before  => File[$mountpoint],
   }
 
   # fix dir. permissions after mount

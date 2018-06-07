@@ -1,6 +1,7 @@
 class gromacs::params {
   $ensure = present
   $version = '5.1.4'
+  $url_template = 'https://github.com/ICS-MU/westlife-gromacs/raw/master/gromacs-<%= $version %>-<%= $build %>.tar.xz'
   $base_dir = '/opt/gromacs'
 
   $user_name = 'gromacs'
@@ -46,13 +47,13 @@ class gromacs::params {
       case $::operatingsystemmajrelease {
         '7': {
           if ($::has_nvidia_gpu == true) {
-            $prebuilt_suffix = '-cuda70.el7'
+            $build = 'cuda70.el7'
           } elsif ('avx2' in $::cpu_flags) {
-            $prebuilt_suffix = '-avx2.el7'
+            $build = 'avx2.el7'
           } elsif ('avx' in $::cpu_flags) {
-            $prebuilt_suffix = '-avx.el7'
+            $build= 'avx.el7'
           } else {
-            $prebuilt_suffix = '-el7'
+            $build= 'el7'
           }
 
           $packages = ['openmpi-devel', 'bc', 'wget', 'mailx']

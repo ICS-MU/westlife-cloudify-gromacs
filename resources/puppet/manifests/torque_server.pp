@@ -1,46 +1,31 @@
-$ensure = $facts['cloudify_ctx_operation_name'] ? {
-  start   => present,
+$_torque_server_ensure = $facts['cloudify_ctx_operation_name'] ? {
   delete  => absent,
-  default => undef,
+  stop    => absent,
+  default => present,
 }
 
 ###
 
 include ::westlife::nofirewall
 
-if ($::cloudify_ctx_type == 'node-instance') or
-   ($::cloudify_ctx_operation_name in ['establish', 'unlink'])
+# in the preconfigure relationship context, set Torque server FQDN
+# on the Torque MOM side
+if ($facts['cloudify_ctx_type'] == 'relationship-instance') and
+   ($facts['cloudify_ctx_operation_name'] == 'preconfigure')
 {
+  ctx { 'torque_server_name':
+    value => $facts['networking']['fqdn'],
+    side  => 'source',
+  }
+
+} else {
   class { 'torque::server':
-    ensure => $ensure,
+    ensure => $_torque_server_ensure,
   }
 
-  $facts.each |String $key, $value| {
-    if $key =~ /^torque_node_(.*)$/ {
-      $_id = $1
-
-      if ($::cloudify_ctx_operation_name == 'unlink') and
-        ($_id == $::cloudify_ctx_remote_instance_id)
-      {
-        warning("Skipping unlinked torque node: ${value['name']}")
-
-      } else {
-        warning("Torque node: ${value['name']} ${value['procs']}")
-
-        torque::mom::node { $value['name']:
-          ensure          => 'present',
-          np              => $value['procs'],
-          ntype           => 'cluster',
-#          num_node_boards => 1,
-          server_name     => 'localhost',
-          membership      => inclusive,
-          provider        => 'parsed',
-        }
-      }
-    }
-  }
-
-  if ($::cloudify_ctx_operation_name == 'establish') {
+  if ($facts['cloudify_ctx_type'] == 'node-instance') and
+     ($_torque_server_ensure == 'present')
+  {
     torque::qmgr::attribute { 'server scheduler_iteration':
       object => 'server',
       key    => 'scheduler_iteration',
@@ -89,7 +74,7 @@ if ($::cloudify_ctx_type == 'node-instance') or
       object_name => 'batch',
       key         => 'queue_type',
       value       => 'execution',
-      require     => ::Torque::Qmgr::Object['queue batch'],
+      require     => Torque::Qmgr::Object['queue batch'],
     }
   
     torque::qmgr::attribute { 'queue batch started':
@@ -97,7 +82,7 @@ if ($::cloudify_ctx_type == 'node-instance') or
       object_name => 'batch',
       key         => 'started',
       value       => 'true',
-      require     => ::Torque::Qmgr::Object['queue batch'],
+      require     => Torque::Qmgr::Object['queue batch'],
     }
   
     torque::qmgr::attribute { 'queue batch enabled':
@@ -105,7 +90,7 @@ if ($::cloudify_ctx_type == 'node-instance') or
       object_name => 'batch',
       key         => 'enabled',
       value       => 'true',
-      require     => ::Torque::Qmgr::Object['queue batch'],
+      require     => Torque::Qmgr::Object['queue batch'],
     }
   
     torque::qmgr::attribute { 'queue batch resources_default.walltime':
@@ -131,12 +116,29 @@ if ($::cloudify_ctx_type == 'node-instance') or
       require  => ::Torque::Qmgr::Object['queue batch'],
     }
   }
-} elsif ($::cloudify_ctx_type == 'relationship-instance') {
-  ctx { 'torque_server_name':
-    value => $::fqdn,
-    side  => 'source',
-  }
 
-} else {
-  fail('Standalone execution')
-}
+  $facts.each |String $key, $value| {
+    if $key =~ /^torque_node_(.*)$/ {
+      $_id = $1
+
+      if ($facts['cloudify_ctx_operation_name'] == 'unlink') and
+         ($facts['cloudify_ctx_remote_instance_id'] == $_id)
+      {
+        warning("Skipping unlinked torque node: ${value['name']}")
+
+      } else {
+        warning("Torque node: ${value['name']} ${value['procs']}")
+
+        torque::mom::node { $value['name']:
+          ensure          => 'present',
+          np              => $value['procs'],
+          ntype           => 'cluster',
+#          num_node_boards => 1,
+          server_name     => 'localhost',
+          membership      => inclusive,
+          provider        => 'parsed',
+        }
+      }
+    }
+  }
+} 

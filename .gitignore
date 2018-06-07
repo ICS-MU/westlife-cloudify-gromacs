@@ -14,6 +14,7 @@ cfy-gromacs-blueprint.yaml
 cfy-gromacs-inputs.yaml
 cfm-gromacs-blueprint.yaml
 cfm-gromacs-inputs.yaml
+cfm-gromacs-blueprint.tar.bz2
 
 # Other
 get-cloudify.py
