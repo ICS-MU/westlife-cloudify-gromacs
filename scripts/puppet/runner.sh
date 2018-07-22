@@ -25,6 +25,15 @@ ctx_node_properties() {
     echo "${PROP}"
 }
 
+# force YUM to IPv4
+function yum_ipv4() {
+    if [ -n "${IS_YUM}" ]; then
+        if ! grep -q ip_resolve /etc/yum.conf; then
+            echo 'ip_resolve=4' | sudo -n tee -a /etc/yum.conf
+        fi
+    fi
+}
+
 # install python
 function install_python() {
     if ! python --version &>/dev/null; then
@@ -178,6 +187,7 @@ function puppet_facts() {
 CTX_SIDE="${relationship_side:-$1}"
 
 # install Puppet on very first run
+yum_ipv4
 install_python
 install_jq
 install_puppet_agent

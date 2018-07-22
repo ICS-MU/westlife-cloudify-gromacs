@@ -1,9 +1,10 @@
 class gromacs (
-  $ensure          = $gromacs::params::ensure,
-  $version         = $gromacs::params::version,
-  $prebuilt_suffix = $gromacs::params::prebuilt_suffix,
-  $packages        = $gromacs::params::packages,
-  $base_dir        = $gromacs::params::base_dir
+  $ensure       = $gromacs::params::ensure,
+  $version      = $gromacs::params::version,
+  $url_template = $gromacs::params::url_template,
+  $build        = $gromacs::params::build,
+  $packages     = $gromacs::params::packages,
+  $base_dir     = $gromacs::params::base_dir
 ) inherits gromacs::params {
 
   unless defined(Class['gromacs::user']) {
@@ -16,17 +17,22 @@ class gromacs (
     present: {
       ensure_packages($packages)
 
-      #TODO
-      file { '/tmp/gromacs.tar.xz':
-        ensure => file,
-        source => "puppet:///modules/gromacs/gromacs-${version}${prebuilt_suffix}.tar.xz",
+      file { '/tmp/.gromacs':
+        ensure  => directory,
+        purge   => true,
+        recurse => true,
+        mode    => '0700',
       }
 
-      archive { '/tmp/gromacs.tar.xz':
+      $_url = inline_epp($url_template)
+      $_name = basename($_url)
+
+      archive { "/tmp/.gromacs/${_name}":
+        source       => $_url,
         extract      => true,
         extract_path => '/',
         creates      => "/${base_dir}",
-        require      => Class['gromacs::user'],
+        require      => File['/tmp/.gromacs'],
       }
     }
 

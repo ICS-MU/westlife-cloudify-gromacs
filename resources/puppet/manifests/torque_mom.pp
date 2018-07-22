@@ -1,18 +1,24 @@
 $ensure = $facts['cloudify_ctx_operation_name'] ? {
-  start   => present,
   delete  => absent,
-  default => undef,
+  stop    => absent,
+  default => present,
 }
 
 ###
 
-include ::westlife::volume
-include ::westlife::nofirewall
+include westlife::volume
+include westlife::nofirewall
 
 if ($::cloudify_ctx_type == 'node-instance') {
-  class { '::torque::mom':
-    ensure      => $ensure,
-    server_name => $::torque_server_name,
+  $_server_name = $facts['torque_server_name']
+
+  if $_server_name and length($_server_name)>0 {
+    class { 'torque::mom':
+      ensure      => $ensure,
+      server_name => $_server_name
+    }
+  } else {
+    fail('Fact "torque_server_name" not set properly')
   }
 
 } elsif ($::cloudify_ctx_type == 'relationship-instance') {

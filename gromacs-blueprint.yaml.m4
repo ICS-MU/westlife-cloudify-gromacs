@@ -1,3 +1,5 @@
+---
+
 tosca_definitions_version: cloudify_dsl_1_3
 
 description: >
@@ -17,13 +19,14 @@ define(_NAME_OLINNODE_,       ifelse(_PROVISIONER_,`hostpool',`olinNodeHostPool'
 define(_NAME_WORKERNODE_,     ifelse(_PROVISIONER_,`hostpool',`workerNodeHostPool',`workerNode'))dnl
 define(_NAME_TORQUESERVER_,   ifelse(_PROVISIONER_,`hostpool',`torqueServerHostPool',`torqueServer'))dnl
 
+# Note: plugin/version installation for CFM handled
+# in Makefile by target "cfm-plugins"
 imports:
-  - http://getcloudify.org/spec/cloudify/3.4/types.yaml
-#  - http://getcloudify.org/spec/fabric-plugin/1.3.1/plugin.yaml
-  - https://raw.githubusercontent.com/ICS-MU/westlife-cloudify-fabric-plugin/1.4.2.1/plugin.yaml
-  - http://getcloudify.org/spec/diamond-plugin/1.3.1/plugin.yaml
-  - http://getcloudify.org/spec/host-pool-plugin/1.4/plugin.yaml
-  - https://raw.githubusercontent.com/ICS-MU/westlife-cloudify-occi-plugin/master/plugin.yaml
+  - http://www.getcloudify.org/spec/cloudify/4.3/types.yaml
+  - http://www.getcloudify.org/spec/diamond-plugin/1.3.1/plugin.yaml
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-host-pool-plugin/1.5/plugin.yaml
+  - https://raw.githubusercontent.com/ICS-MU/westlife-cloudify-occi-plugin/0.0.15/plugin.yaml
+  - https://raw.githubusercontent.com/ICS-MU/westlife-cloudify-fabric-plugin/1.5.1.1/plugin.yaml
   - https://raw.githubusercontent.com/ICS-MU/westlife-cloudify-westlife-workflows/master/plugin.yaml
   - types/puppet.yaml
   - types/server.yaml
@@ -62,7 +65,7 @@ inputs:
   hostpool_username:
     default: 'root'
     type: string
-  hostpool_private_key_filename:
+  hostpool_private_key:
     default: ''
     type: string
 
@@ -72,7 +75,7 @@ inputs:
     type: string
   cc_public_key:
     type: string
-  cc_private_key_filename:
+  cc_private_key:
     type: string
   cc_data:
     default: {}
@@ -168,26 +171,32 @@ dsl_definitions:
 
   fabric_env: &fabric_env
     user: { get_input: cc_username }
-    key_filename: { get_input: cc_private_key_filename }
+    key: { get_input: cc_private_key }
 
   fabric_env_hostpool: &fabric_env_hostpool
     user: { get_input: hostpool_username }
-    key_filename: { get_input: hostpool_private_key_filename }
+    key: { get_input: hostpool_private_key }
 
   agent_configuration: &agent_configuration
     install_method: remote
     user: { get_input: cc_username }
-    key: { get_input: cc_private_key_filename }
+    key: { get_input: cc_private_key }
 
   agent_configuration_hostpool: &agent_configuration_hostpool
     install_method: remote
     user: { get_input: hostpool_username }
-    key: { get_input: hostpool_private_key_filename }
+    key: { get_input: hostpool_private_key }
 
   puppet_config: &puppet_config
     repo: 'https://yum.puppetlabs.com/puppet5/puppet5-release-el-7.noarch.rpm'
     package: 'puppet-agent'
     download: resources/puppet.tar.gz
+
+  plugin_resources: &plugin_resources
+    description: >
+      Holds any archives that should be uploaded to the manager.
+    default:
+      - 'https://github.com/ICS-MU/westlife-cloudify-occi-plugin/releases/download/0.0.14/cloudify_occi_plugin-0.0.14-py27-none-linux_x86_64.wgn'
 
 node_templates:
 
@@ -357,9 +366,19 @@ ifelse(_PROVISIONER_,`hostpool',`
       size: { get_input: olin_occi_scratch_size }
       availability_zone: { get_input: olin_occi_availability_zone }
       occi_config: *occi_configuration
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        delete:
+          inputs:
+            wait_finish: false
     relationships:
       - type: cloudify.occi.relationships.volume_contained_in_server
         target: olinNode
+        target_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            unlink:
+              inputs:
+                skip_action: true
 
   gromacsPortal:
     type: _NODE_WEBSERVER_
@@ -418,6 +437,8 @@ ifelse(_PROVISIONER_,`hostpool',`
     relationships:
       - type: cloudify.relationships.contained_in
         target: olinNode
+      - type: cloudify.relationships.depends_on
+        target: olinStorage
 
   # worker node running on cloud (OCCI)
   workerNode:
@@ -441,9 +462,19 @@ ifelse(_PROVISIONER_,`hostpool',`
       size: { get_input: worker_occi_scratch_size }
       availability_zone: { get_input: worker_occi_availability_zone }
       occi_config: *occi_configuration
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        delete:
+          inputs:
+            wait_finish: false
     relationships:
       - type: cloudify.occi.relationships.volume_contained_in_server
         target: workerNode
+        target_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            unlink:
+              inputs:
+                skip_action: true
 
   torqueMom:
     type: _NODE_SWCOMPONENT_
@@ -506,6 +537,8 @@ ifelse(_PROVISIONER_,`hostpool',`
     relationships:
       - type: cloudify.relationships.contained_in
         target: workerNode
+      - type: cloudify.relationships.depends_on
+        target: workerScratch
 ',`errprint(Missing definition of _PROVISIONER_ in the inputs
 )m4exit(1)')
 
@@ -515,6 +548,7 @@ groups:
 
   healWorkerNodes:
     members: [_NAME_WORKERNODE_]
+    #members: [workerNodes]
     policies:
       simple_autoheal_policy:
         type: cloudify.policies.types.host_failure
@@ -577,13 +611,12 @@ policies:
     targets: [workerNodes]
     properties:
       default_instances: _WORKERS_
-#      min_instances: _WORKERS_MIN_
-#      max_instances: _WORKERS_MAX_
+      min_instances: _WORKERS_MIN_
+      max_instances: _WORKERS_MAX_
 
 outputs:
   web_endpoint:
     description: Gromacs portal endpoint
-    value:
-      url: { concat: ['http://', { get_attribute: [_NAME_OLINNODE_, ip] }] }
+    value: { concat: ['http://', { get_attribute: [_NAME_OLINNODE_, ip] }] }
 
 # vim: set syntax=yaml
